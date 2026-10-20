@@ -1,0 +1,1579 @@
+<meta charset="utf-8">
+<title>触って覚える！血液ガスマスター</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="手技マスターシリーズ。小児の症例を進めながら血液ガスの読み方と人工呼吸器の調整を体験する学習ゲーム。">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="血液ガスマスター">
+<meta name="theme-color" content="#FFF3E4">
+<meta name="format-detection" content="telephone=no">
+<link rel="apple-touch-icon" href="assets/app_icon.png">
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=DotGothic16&family=Barlow+Semi+Condensed:wght@500;600;700&family=M+PLUS+Rounded+1c:wght@400;500;700;800&display=swap">
+<style>
+/* Layout: 手技マスターシリーズ（人工呼吸器ゲーム）と同じパステルの病棟。上にモニタ、左にベッドサイドの場面と会話、右にガス伝票・天秤・酸塩基マップ */
+:root{
+  --body:#FFF3E4; --deck:linear-gradient(168deg,#FFEFD6 0%,#FFE0EC 46%,#E3ECFF 100%);
+  --panel:#FFFFFF; --panel2:#FFF8EE; --line:#F0DFD0; --line2:#E4D3EA;
+  --fg:#262745; --muted:#767898; --dim:#A4A6C2;
+  --acid:#FF5E8A; --base:#5B7CFA; --co2:#1BA7C9; --hco3:#E79A00; --ok:#12C48B; --bad:#FF5570; --orange:#FFB020;
+  --paper:#FFFDF6; --ink:#2b2722; --ink2:#7a7166;
+  --shadow:0 2px 0 rgba(90,60,110,.10),0 6px 16px rgba(120,80,140,.10);
+  --f-display:"Dela Gothic One","M PLUS Rounded 1c",sans-serif;
+  --f-body:"M PLUS Rounded 1c","Hiragino Maru Gothic ProN","Hiragino Sans","Noto Sans JP",sans-serif;
+  --f-dot:"DotGothic16","Osaka-Mono",monospace;
+  --f-num:"Barlow Semi Condensed","Roboto Condensed","Helvetica Neue",Arial,sans-serif;
+  --r:14px;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{background:var(--body);color:var(--fg)}
+html{-webkit-text-size-adjust:100%;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--deck) fixed,var(--body);font-family:var(--f-body);font-size:15px;line-height:1.75;min-height:100dvh}
+button{font:inherit;color:inherit;cursor:pointer;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+img{-webkit-user-drag:none;-webkit-touch-callout:none}
+
+button:focus-visible,input:focus-visible{outline:3px solid var(--base);outline-offset:2px}
+.wrap{max-width:1320px;margin:0 auto}
+.screen{padding:14px max(16px,env(safe-area-inset-right,0px)) calc(40px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+h1,h2,h3{text-wrap:balance;margin:0}
+.f{font-family:var(--f-num);font-weight:600;background:#EEF2FF;border:1px solid #D5DEFF;padding:1px 7px;border-radius:7px;white-space:nowrap;color:#3A4DB8}
+.num{font-family:var(--f-num);font-variant-numeric:tabular-nums;font-weight:600}
+.c-acid{color:var(--acid)} .c-base{color:var(--base)} .c-co2{color:var(--co2)} .c-hco3{color:var(--hco3)} .c-ok{color:var(--ok)} .c-bad{color:var(--bad)}
+
+/* ===== アプリバー（タイトル以外の画面） ===== */
+.appbar{position:sticky;top:0;z-index:15;display:flex;align-items:center;gap:8px;padding:calc(6px + env(safe-area-inset-top,0px)) max(12px,env(safe-area-inset-right,0px)) 6px max(8px,env(safe-area-inset-left,0px));background:rgba(255,243,228,.9);-webkit-backdrop-filter:blur(14px) saturate(1.4);backdrop-filter:blur(14px) saturate(1.4);border-bottom:2px solid rgba(46,37,69,.08)}
+.ab-back{flex:none;width:44px;height:44px;border-radius:50%;border:0;background:transparent;display:grid;place-items:center;color:#2E2545}
+.ab-back svg{width:26px;height:26px}
+.ab-back:active{background:rgba(46,37,69,.08)}
+.ab-t{flex:1;min-width:0;line-height:1.25}
+.ab-t b{display:block;font-weight:800;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ab-t small{display:block;font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ab-logo{height:34px;width:auto;flex:none}
+.snd-btn{flex:none;width:38px;height:38px;border-radius:50%;border:2px solid #fff;background:#fff;color:#5B7CFA;display:grid;place-items:center;box-shadow:var(--shadow);padding:0;cursor:pointer}
+.snd-btn svg{width:22px;height:22px}.snd-btn .x{display:none}
+.snd-btn.off{color:#9a98b0}.snd-btn.off .w1,.snd-btn.off .w2{display:none}.snd-btn.off .x{display:inline}
+.t-snd{position:absolute;z-index:3;top:calc(12px + env(safe-area-inset-top,0px));right:max(12px,env(safe-area-inset-right,0px))}
+.score-pill{flex:none;font-family:var(--f-num);font-size:14px;color:var(--muted);display:flex;gap:10px;align-items:center;background:#fff;border-radius:99px;padding:3px 12px;box-shadow:var(--shadow);white-space:nowrap}
+.score-pill strong{color:var(--fg)}
+.btn{background:#fff;border:2px solid var(--line);border-bottom-width:4px;border-radius:12px;padding:7px 16px;font-weight:700;transition:transform .1s,border-color .15s}
+.btn:hover{border-color:#FFC7D6}
+.btn:active{transform:translateY(2px);border-bottom-width:2px}
+.btn.primary{background:linear-gradient(#FF7FA4,#FF5E8A);color:#fff;border-color:#D9416C}
+.btn.primary:hover{border-color:#B8325A}
+.btn.ghost{background:transparent;border-color:transparent}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+
+/* ===== タイトル画面（シリーズ共通：ロゴ、いぶき先生のひとこと、厚みのあるメニュー） ===== */
+.title-screen{position:relative;isolation:isolate;min-height:100dvh;display:flex;justify-content:center;overflow:hidden;background:#FFF3E4}
+.t-bg{position:absolute;inset:0;z-index:-1;background:url(assets/bg_title_portrait.webp) center top/cover no-repeat,url(assets/bg_title.webp) 30% center/cover no-repeat}
+.t-bg::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,248,238,.55) 0%,rgba(255,248,238,0) 26%,rgba(255,248,238,0) 48%,rgba(255,243,228,.7) 72%,rgba(255,243,228,.85))}
+.t-panel{position:relative;z-index:1;width:100%;max-width:470px;min-height:100dvh;height:100dvh;display:flex;flex-direction:column;align-items:center;gap:8px;padding:calc(14px + env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) calc(12px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.t-logo{margin:0;width:min(90%,380px,42dvh);line-height:1}
+.t-logo img{width:100%;height:auto;display:block;filter:drop-shadow(0 6px 10px rgba(80,40,90,.22));animation:logoIn .8s cubic-bezier(.2,1.5,.4,1) both}
+@keyframes logoIn{from{opacity:0;transform:scale(.6) rotate(-4deg)}to{opacity:1;transform:none}}
+.t-logo-fb{display:flex;flex-direction:column;align-items:center;gap:4px}
+.t-logo-fb .l1{font-family:var(--f-display);font-size:clamp(34px,11vw,52px);color:#FFC93C;-webkit-text-stroke:7px #2E2545;paint-order:stroke fill;letter-spacing:.02em}
+.t-logo-fb .l2{background:linear-gradient(#FF7FA4,#F0507F);color:#fff;font-weight:800;border:3px solid #2E2545;border-radius:99px;padding:2px 18px;font-size:18px}
+.t-sub{font-weight:800;color:#5a4a78;font-size:13.5px;letter-spacing:.08em;background:rgba(255,255,255,.8);padding:1px 14px;border-radius:99px}
+.t-say{position:relative;background:#fff;border:3px solid #2E2545;border-radius:20px;padding:9px 16px;font-weight:700;font-size:14px;line-height:1.65;text-align:center;white-space:pre-line;box-shadow:0 4px 0 rgba(46,37,69,.14);max-width:100%;animation:pop .4s .3s both}
+.t-say::after{content:"";position:absolute;right:26%;bottom:-13px;width:20px;height:20px;background:#fff;border-right:3px solid #2E2545;border-bottom:3px solid #2E2545;transform:skewX(-20deg) rotate(45deg)}
+.t-cast{position:relative;width:100%;flex:1 1 0;min-height:0;max-height:360px;margin-bottom:-18px;display:flex;justify-content:center;align-items:flex-end;gap:4%;pointer-events:none}
+.t-doc{height:100%;width:auto;filter:drop-shadow(0 8px 10px rgba(60,30,80,.25))}
+.t-masc{height:34%;width:auto;margin-bottom:44%;animation:float 3s ease-in-out infinite;filter:drop-shadow(0 6px 8px rgba(60,30,80,.2))}
+.t-menu{position:relative;z-index:1;display:flex;flex-direction:column;gap:2px;width:100%;flex:none}
+.tbtn{display:flex;align-items:center;gap:12px;text-align:left;width:100%;min-height:62px;border:22px solid transparent;border-image:url(assets/ui_button.webp) 71 fill / 22px stretch;background:none;padding:0 4px 4px;color:#2E2545;transition:transform .08s}
+.tbtn:active{transform:translateY(3px) scale(.99)}
+.tbtn img{flex:none;width:46px;height:46px;margin:-8px 0 -8px -8px;filter:drop-shadow(0 2px 2px rgba(46,37,69,.2))}
+.tbtn span{min-width:0}
+.tbtn b{display:block;font-size:18px;font-weight:800;line-height:1.25;letter-spacing:.02em}
+.tbtn i{display:block;font-style:normal;font-size:12px;color:#6c6888;font-weight:700;line-height:1.35;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tbtn.go{border-image:url(assets/ui_button_primary.webp) 70 fill / 22px stretch;color:#fff;min-height:74px}
+.tbtn.go b{font-size:23px;text-shadow:0 2px 0 rgba(150,60,0,.55),0 0 1px #8a3c00}
+.tbtn.go i{color:#fff;text-shadow:0 1px 0 rgba(150,60,0,.6)}
+.tbtn.go img{width:54px;height:54px}
+.t-foot{display:flex;align-items:center;gap:10px;width:100%;padding:4px 4px 0}
+.t-prog{flex:1;height:12px;border-radius:99px;background:rgba(255,255,255,.9);border:2px solid #2E2545;overflow:hidden}
+.t-prog i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,#FF5E8A,#FFB020 45%,#12C48B);transition:width .8s}
+.t-pct{font-family:var(--f-num);font-weight:700;font-size:15px;color:#2E2545}
+.t-series{font-size:11px;font-weight:700;color:#6c6888;white-space:nowrap}
+@media (max-width:600px) and (min-height:701px) and (orientation:portrait){
+  .t-say{align-self:flex-start;max-width:63%;text-align:left;font-size:13px;padding:8px 12px;z-index:2;white-space:normal}
+  .t-say::after{right:-12px;bottom:auto;top:46%;width:16px;height:16px;transform:rotate(-45deg)}
+  .t-cast{margin-top:-128px;justify-content:flex-end;padding-right:2%;max-height:440px;gap:0}
+  .t-masc{margin-bottom:6%;margin-right:-4%}
+}
+@media (max-height:700px) and (orientation:portrait){.t-cast{display:none}.t-say{margin-block:auto}.t-say::after{display:none}}
+@media (max-height:740px){.t-sub{display:none}.t-panel{gap:6px}.t-say{font-size:12.5px;padding:6px 12px}.tbtn{min-height:58px}.tbtn.go{min-height:68px}.tbtn i{display:none}}
+@media (max-height:600px){.t-say,.t-sub{display:none}}
+@media (orientation:landscape) and (max-height:520px){
+  .t-panel{max-width:900px;height:auto;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-rows:auto minmax(0,1fr) auto;column-gap:22px;row-gap:4px;align-items:center;min-height:100dvh}
+  .t-logo{grid-column:1;grid-row:1;justify-self:center;width:min(100%,340px)}
+  .t-cast{grid-column:1;grid-row:2;height:100%;max-height:180px;min-height:80px;margin:0}
+  .t-menu{grid-column:2;grid-row:1/3;margin:0}
+  .t-foot{grid-column:1/-1;grid-row:3}
+  .tbtn{min-height:58px}.tbtn.go{min-height:64px}.tbtn i{display:none}.tbtn b{font-size:16px}.tbtn.go b{font-size:19px}
+}
+@media (min-width:900px){
+  .title-screen{justify-content:flex-start;align-items:center}
+  .t-bg{background:url(assets/bg_title.webp) 60% center/cover no-repeat}
+  .t-bg::after{background:linear-gradient(90deg,rgba(255,248,238,.5),rgba(255,248,238,0) 55%)}
+  .t-panel{margin-left:clamp(24px,7vw,120px);max-width:480px;background:rgba(255,250,244,.8);border-radius:32px;padding:26px 24px 18px;margin-block:24px;box-shadow:0 20px 50px rgba(80,40,90,.18)}
+  .t-panel{position:static;height:auto;min-height:0}
+  .t-cast{position:absolute;right:clamp(10px,5vw,120px);left:calc(clamp(24px,7vw,120px) + 520px);bottom:-2dvh;width:auto;height:min(80dvh,680px);max-height:none;margin:0;gap:2vw;justify-content:center}
+  .t-say::after{display:none}
+  .t-menu{margin-top:10px}
+}
+.section-h{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:28px 0 12px;flex-wrap:wrap}
+.section-h h3{font-size:18px;font-weight:800}
+.section-h span{font-size:12.5px;color:var(--muted)}
+.cases{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.case-card{position:relative;text-align:left;background:#fff;border:2px solid #fff;border-radius:18px;padding:0;display:flex;flex-direction:column;overflow:hidden;box-shadow:var(--shadow);transition:transform .15s,border-color .15s}
+.case-card:hover{transform:translateY(-3px);border-color:#FFB3C8}
+.case-card .thumb{height:170px;background:linear-gradient(160deg,#E3ECFF,#FFE0EC);display:block;overflow:hidden}
+.case-card .thumb img{display:block;height:100%;width:100%;object-fit:contain;object-position:50% 50%;padding:8px;box-sizing:border-box;filter:drop-shadow(0 3px 4px rgba(46,37,69,.12))}
+.case-card .body{padding:10px 14px 12px;display:flex;flex-direction:column;gap:4px;flex:1}
+.case-card .no{font-family:var(--f-num);font-size:13px;color:var(--dim);display:flex;justify-content:space-between;font-weight:600}
+.case-card .lv{background:#FFF0F4;color:#C93062;border-radius:99px;padding:0 9px;font-family:var(--f-body);font-size:11.5px;font-weight:700}
+.case-card .pt{font-size:13px;color:var(--muted)}
+.case-card .ttl{font-weight:800;font-size:17px;line-height:1.4}
+.case-card .tag{margin-top:auto;padding-top:4px;font-size:12px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.chip{display:inline-block;font-size:12px;padding:0 10px;border-radius:99px;line-height:1.8;font-weight:700;color:#fff}
+.stars{font-family:var(--f-num);letter-spacing:2px;color:var(--orange);font-size:16px}
+.stars .off{color:#EADFD6}
+.notes{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
+.note{background:#fff;border:2px dashed var(--line2);border-radius:14px;padding:12px 14px;min-width:0}
+.note.on{border-style:solid;border-color:#BFE9DA;box-shadow:var(--shadow)}
+.note h4{margin:0 0 4px;font-size:14px;font-weight:800}
+.note .fx{font-family:var(--f-num);font-weight:600;font-size:13px;color:#3A4DB8;overflow-wrap:anywhere}
+.note p{margin:4px 0 0;font-size:12.5px;color:var(--muted)}
+.note.locked h4,.note.locked .fx{color:var(--dim)}
+.foot{margin-top:28px;font-size:12px;color:var(--muted);max-width:60em}
+
+/* ===== 症例 ===== */
+.monitor{display:grid;grid-template-columns:minmax(0,1.3fr) repeat(4,minmax(0,.5fr));background:#0C1116;border:6px solid #fff;border-radius:18px;overflow:hidden;margin-bottom:14px;box-shadow:var(--shadow);color:#E3EDEF}
+.mon-wave{padding:8px 12px;min-width:0;border-right:1px solid #22303D}
+.mon-wave .who{font-size:13px;color:#93acb3;display:flex;gap:10px;flex-wrap:wrap}
+.mon-wave .who b{color:#fff}
+.mon-wave canvas{display:block;width:100%;height:70px}
+.mon-v{padding:8px 12px;border-right:1px solid #22303D;min-width:0}
+.mon-v:last-child{border-right:0}
+.mon-v .lb{font-family:var(--f-num);font-size:12px;letter-spacing:.1em;font-weight:600}
+.mon-v .vl{font-family:var(--f-num);font-weight:700;font-size:34px;line-height:1.05;font-variant-numeric:tabular-nums}
+.mon-v .sub{font-family:var(--f-num);font-size:11.5px;color:#6E8590}
+.mon-v.hr{color:#6ee68f} .mon-v.sp{color:#5fd7ff} .mon-v.rr{color:#f5e06a} .mon-v.bp{color:#ff8fa3}
+.mon-v.bp .vl{font-size:25px;padding-top:6px}
+.monitor.alarm{animation:alarm 1s steps(2) infinite}
+@keyframes alarm{50%{border-color:var(--bad)}}
+
+.stage{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:14px;align-items:start}
+.dlg{background:#fff;border-radius:20px;display:flex;flex-direction:column;min-width:0;box-shadow:var(--shadow);overflow:hidden}
+.dlg-head{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 14px;border-bottom:2px solid var(--line)}
+.dlg-head .t{font-weight:800;font-size:15px}
+.dlg-head .t small{color:var(--muted);font-weight:500;margin-left:8px}
+.scene{position:relative;height:210px;background:#FFF8EE center/cover no-repeat;overflow:hidden;border-bottom:2px solid var(--line)}
+.scene .pt-img{position:absolute;left:4%;bottom:-6%;height:112%;width:auto;transition:opacity .4s}
+.scene .doc-img{position:absolute;right:4%;bottom:-38%;height:150%;width:auto;filter:drop-shadow(0 4px 6px rgba(60,30,80,.2))}
+.scene .masc-img{position:absolute;right:30%;top:10px;height:64px;width:auto;animation:float 3s ease-in-out infinite}
+@keyframes float{50%{transform:translateY(-6px)}}
+.scene .cond{position:absolute;left:12px;top:10px;background:#fff;border-radius:99px;padding:2px 12px;font-size:12.5px;font-weight:800;box-shadow:var(--shadow)}
+.scene .cond.bad{color:#fff;background:var(--bad)} .scene .cond.ok{color:#fff;background:var(--ok)}
+.log{padding:14px;display:flex;flex-direction:column;gap:12px;overflow-y:auto;max-height:calc(100vh - 420px);min-height:360px;scroll-behavior:smooth;background:#FFFCF7}
+.msg{display:flex;gap:10px;align-items:flex-start;animation:pop .28s ease-out both}
+@keyframes pop{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.av{flex:none;width:40px;height:40px;border-radius:50%;overflow:hidden;display:grid;place-items:center;font-weight:800;font-size:15px;border:2px solid #fff;box-shadow:0 1px 3px rgba(60,30,80,.2)}
+.av.d{background:#DDF5EC} .av img{width:100%;height:100%;object-fit:cover;display:block}
+.av.ns{background:#FFE0EC;color:#C93062}
+.av.m{background:#E3ECFF}
+.bub{background:#fff;border:2px solid var(--line);border-radius:4px 16px 16px 16px;padding:8px 13px;min-width:0;max-width:100%}
+.bub .nm{font-size:11.5px;color:var(--muted);font-weight:700;display:block;margin-bottom:1px}
+.msg.n .bub{background:transparent;border:0;border-left:3px solid var(--line2);border-radius:0;color:var(--muted);padding:2px 0 2px 12px}
+.msg.me{justify-content:flex-end}
+.msg.me .bub{background:#EEF2FF;border-color:#D5DEFF;border-radius:16px 4px 16px 16px}
+.msg.ex .bub{border-color:#BFE9DA;background:#F0FBF6}
+.msg.ex .bub.wrong{border-color:#FFC2CF;background:#FFF2F5}
+.lesson{background:#FFFCF2;border:2px solid #FFD98C;border-radius:16px;padding:12px 14px;display:flex;flex-direction:column;gap:8px;animation:pop .28s ease-out both;box-shadow:var(--shadow);font-size:14.5px;line-height:1.7}
+.lesson .lh{display:flex;align-items:center;gap:10px}
+.lesson .lh img{width:40px;height:40px;border-radius:50%;background:#FFE7EF;border:2px solid #fff;box-shadow:0 1px 3px rgba(46,37,69,.15);flex:none;object-fit:cover}
+.lesson .lh b{display:block;font-size:16px;line-height:1.4}
+.lesson .lk{display:block;font-size:11.5px;letter-spacing:.08em;color:#C27A00;font-weight:700}
+.lesson .lfx{font-family:var(--f-num);font-weight:600;background:#EEF2FF;border:1px solid #D5DEFF;color:#3A4DB8;border-radius:10px;padding:6px 10px;font-size:14px}
+.lesson ol{margin:0;padding-left:1.3em;display:flex;flex-direction:column;gap:4px}
+.lesson .leg{background:#fff;border:1px dashed #FFC7A0;border-radius:10px;padding:6px 10px;font-size:13.5px}
+.lesson .leg span{display:inline-block;background:#FFB020;color:#fff;font-weight:700;font-size:11px;border-radius:6px;padding:0 6px;margin-right:6px}
+.q{background:#fff;border:2px solid #FFC7D6;border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:10px;animation:pop .28s ease-out both;box-shadow:var(--shadow)}
+.q .qh{align-self:flex-start;font-size:12px;letter-spacing:.06em;color:#fff;background:var(--acid);border-radius:99px;padding:0 10px;font-weight:800}
+.q .qt{font-weight:800;font-size:16px;line-height:1.55}
+.choices{display:grid;gap:8px}
+.choice{text-align:left;background:#fff;border:2px solid var(--line);border-bottom-width:4px;border-radius:12px;padding:9px 12px;font-weight:500;transition:border-color .12s,background .12s}
+.choice:hover:not([disabled]){border-color:#FFB3C8;background:#FFF7FA}
+.choice.ok{border-color:var(--ok);background:#E6FAF1}
+.choice.ng{border-color:var(--bad);background:#FFF0F3;animation:shake .35s}
+.choice[disabled]{cursor:default}
+@keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+.hint{font-size:13.5px;color:#C2304F;font-weight:500}
+.nextrow{display:flex;justify-content:flex-end}
+.inline-vis{background:#FFFDF8;border:2px solid var(--line);border-radius:12px;padding:10px;overflow-x:auto}
+
+.side{display:flex;flex-direction:column;gap:14px;min-width:0}
+.side-top{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:14px}
+.card{background:#fff;border-radius:20px;padding:12px;min-width:0;box-shadow:var(--shadow)}
+.card h5{margin:0 0 6px;font-size:13px;font-weight:800;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.card h5 .num{color:var(--muted);font-size:13px}
+
+.slip{background:var(--paper);color:var(--ink);font-family:var(--f-dot);border-radius:4px;padding:12px 14px 16px;font-size:14px;line-height:1.55;min-width:0;box-shadow:var(--shadow);
+  -webkit-mask:radial-gradient(circle 5px at 50% 100%,#0000 98%,#000) 0 0/12px 100% repeat-x;mask:radial-gradient(circle 5px at 50% 100%,#0000 98%,#000) 0 0/12px 100%}
+.slip .hd{font-size:12px;color:var(--ink2);border-bottom:1px dashed #c9bfae;padding-bottom:6px;margin-bottom:6px}
+.slip .row{display:grid;grid-template-columns:4.6em 1fr 3.2em 1.2em;gap:4px;align-items:baseline;border-radius:3px;padding:0 3px;transition:background .3s}
+.slip .row .v{text-align:right;font-variant-numeric:tabular-nums}
+.slip .row .u{font-size:11px;color:var(--ink2)}
+.slip .row .fl{font-weight:700;text-align:center}
+.slip .row .fl.H{color:#c2361f} .slip .row .fl.L{color:#2d48b8}
+.slip .row.hl{background:#FFE58A}
+.slip .sep{border-top:1px dashed #c9bfae;margin:5px 0}
+.slip.printing .row{animation:print .35s steps(4) both}
+@keyframes print{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
+.slip .hist{font-size:11.5px;color:var(--ink2);margin-top:8px;border-top:1px dashed #c9bfae;padding-top:6px}
+.slip-empty{color:var(--ink2);text-align:center;padding:16px 0 10px}
+.slip-empty img{width:min(160px,70%);height:auto;display:block;margin:0 auto 6px}
+
+.mapwrap svg{width:100%;height:auto;display:block}
+.legend{display:flex;flex-wrap:wrap;gap:6px 12px;font-size:12px;color:var(--muted);margin-top:6px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px;vertical-align:-1px}
+.seesaw svg{width:100%;height:auto;display:block}
+.toggle{font-size:12px;padding:1px 10px;border-radius:99px;border:2px solid var(--line);background:#fff;color:var(--muted);font-weight:700}
+
+.vent{background:#F4F7FF;border:2px solid #D5DEFF;border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:12px}
+.vent .vh{display:flex;justify-content:space-between;align-items:center;gap:8px;font-family:var(--f-num);font-size:13px;color:#3A4DB8;letter-spacing:.06em;flex-wrap:wrap;font-weight:700}
+.knobs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.knob{background:#fff;border:2px solid var(--line);border-radius:12px;padding:8px 10px;min-width:0}
+.knob label{display:flex;justify-content:space-between;align-items:baseline;font-size:12.5px;color:var(--muted);gap:6px;font-weight:700}
+.knob label .val{font-family:var(--f-num);font-weight:700;font-size:22px;color:var(--fg)}
+.knob label .val small{font-size:11.5px;color:var(--muted);font-weight:500;margin-left:2px}
+.knob input[type=range]{width:100%;accent-color:var(--acid)}
+.knob.locked{opacity:.5}
+.derived{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.dv{background:#fff;border-radius:10px;padding:5px 9px;min-width:0;border:2px solid #fff}
+.dv .k{font-size:11px;color:var(--muted);display:block;line-height:1.3;font-weight:700}
+.dv .v{font-family:var(--f-num);font-weight:700;font-size:17px}
+.dv.warn{border-color:#FFD58A;background:#FFF8E8} .dv.warn .v{color:#B57400}
+.dv.bad{border-color:#FFB3C0;background:#FFF0F3} .dv.bad .v{color:var(--bad)}
+.goals{display:flex;flex-direction:column;gap:4px;font-size:13.5px}
+.goal{display:flex;gap:8px;align-items:center}
+.goal .mk{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font-size:11px;flex:none;border:2px solid var(--dim);color:var(--dim);font-weight:800}
+.goal.pass .mk{background:var(--ok);border-color:var(--ok);color:#fff}
+.goal.fail .mk{border-color:var(--bad);color:var(--bad)}
+.vent .act{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.vent .act small{color:var(--muted)}
+
+.debrief{position:relative;background:linear-gradient(160deg,#FFF0F4,#FFF8EE 60%,#E9FBF3);border:2px solid #FFC7D6;border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:10px;overflow:hidden}
+.debrief .confetti{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.35;pointer-events:none}
+.debrief>*:not(.confetti){position:relative}
+.debrief .dochappy{position:absolute;right:8px;bottom:0;height:150px;width:auto}
+.debrief .big{font-family:var(--f-display);font-size:24px;color:#C93062}
+.debrief .stars{font-size:28px}
+.debrief ul{margin:0;padding-left:1.2em;padding-right:90px}
+.debrief .row{display:flex;gap:8px;flex-wrap:wrap}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(18px + env(safe-area-inset-bottom,0px));background:#fff;border:2px solid var(--ok);color:var(--fg);padding:8px 16px;border-radius:99px;font-size:13.5px;font-weight:700;z-index:20;animation:pop .3s both;max-width:calc(100% - 32px);box-shadow:var(--shadow)}
+
+/* ノベル場面 */
+[hidden]{display:none!important}
+.vn{position:fixed;inset:0;z-index:30;background:#1b1530;cursor:pointer;display:flex;flex-direction:column;justify-content:flex-end;padding:0 max(16px,env(safe-area-inset-right,0px)) calc(16px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.vn-cg{position:absolute;inset:0;background:#2a2340 center/cover no-repeat;animation:kb 18s ease-in-out infinite alternate}
+@keyframes kb{from{transform:scale(1.02)}to{transform:scale(1.08) translate(-1%,-1%)}}
+.vn::after{content:"";position:absolute;left:0;right:0;bottom:0;height:45%;background:linear-gradient(transparent,rgba(30,20,50,.55));pointer-events:none}
+.vn-chap{position:absolute;inset:0;display:grid;place-content:center;text-align:center;gap:6px;background:rgba(255,243,228,.82);z-index:2;animation:pop .5s both}
+.vn-chap.out{opacity:0;transition:opacity .3s}
+.vn-chap .tm{font-family:var(--f-num);font-weight:700;font-size:22px;color:var(--acid);letter-spacing:.06em}
+.vn-chap .tt{font-family:var(--f-display);font-size:clamp(24px,4.5vw,44px);color:#2E2545;text-wrap:balance;padding:0 16px}
+.vn-box{position:relative;z-index:1;max-width:980px;width:100%;margin:0 auto;background:rgba(255,255,255,.95);border:3px solid #2E2545;border-radius:20px;padding:20px 20px 30px;min-height:140px;box-shadow:0 8px 24px rgba(30,20,50,.3)}
+.vn-name{position:absolute;top:-20px;left:18px;background:linear-gradient(#FF7FA4,#FF5E8A);color:#fff;font-weight:800;border:3px solid #2E2545;border-radius:99px;padding:1px 16px 1px 6px;display:flex;align-items:center;gap:6px;font-size:15px}
+.vn-name .vf{width:34px;height:34px;border-radius:50%;overflow:hidden;background:#fff;display:inline-block;flex:none}
+.vn-name .vf img{width:100%;height:100%;object-fit:cover;display:block}
+.vn-text{font-size:17px;line-height:1.85;font-weight:500;color:var(--fg)}
+.vn-text.narr{color:var(--muted);font-style:normal}
+.vn-next{position:absolute;right:16px;bottom:6px;font-size:12px;color:var(--acid);font-weight:700;animation:float 1.2s ease-in-out infinite}
+.vn-skip{position:absolute;z-index:3;top:calc(14px + env(safe-area-inset-top,0px));right:max(16px,env(safe-area-inset-right,0px));background:rgba(255,255,255,.9);border:2px solid #2E2545;border-radius:99px;padding:2px 14px;font-weight:700;font-size:13px}
+.story-btn{display:flex;gap:8px;flex-wrap:wrap}
+.case-card .when{font-family:var(--f-num);font-weight:700;color:var(--acid);font-size:13px}
+@media (max-width:560px){.vn-text{font-size:15.5px}.vn-box{padding:18px 14px 28px}}
+/* 縦長の画面では横長のCGが切れすぎないよう、全体を見せて背景はぼかしで埋める */
+@media (max-aspect-ratio:4/5){
+  .vn-cg{background-repeat:no-repeat;background-position:-9999px -9999px;background-size:10px 10px;background-color:#1b1530;animation:none;isolation:isolate}
+  .vn-cg::before,.vn-cg::after{content:"";position:absolute;background-image:inherit;background-repeat:no-repeat}
+  .vn-cg::before{inset:-30px;background-size:cover;background-position:center;filter:blur(22px) brightness(.7) saturate(1.1)}
+  .vn-cg::after{left:0;right:0;top:calc(env(safe-area-inset-top,0px) + 44px);height:min(62dvh,calc((100vw + 200px) * 9 / 16));background-size:cover;background-position:center;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+}
+@media (max-width:1100px){.side-top{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:860px){
+  .stage{grid-template-columns:minmax(0,1fr)}
+  .side-top{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+  .log{max-height:none;min-height:0;overflow:visible}
+  .hero{grid-template-columns:minmax(0,1fr);min-height:0;padding:20px}
+  .hero::before{background:linear-gradient(180deg,rgba(255,248,238,.9),rgba(255,248,238,.75))}
+  .hero .doc{display:none}
+  .cases{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .monitor{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .mon-wave{grid-column:1/-1;border-right:0;border-bottom:1px solid #22303D}
+}
+@media (max-width:560px){
+  .side-top{grid-template-columns:minmax(0,1fr)}
+  .cases{grid-template-columns:minmax(0,1fr)}
+  .scene{height:170px}
+  .mon-v .vl{font-size:24px}
+  .mon-v.bp .vl{font-size:17px}
+  .mon-v{padding:6px 8px}
+  .derived{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .knobs{grid-template-columns:minmax(0,1fr)}
+  .debrief ul{padding-right:0}.debrief .dochappy{display:none}
+}
+/* ===== 当直表・ノート・この教材について ===== */
+.chapter+.chapter{margin-top:30px}
+.story-card{display:grid;grid-template-columns:minmax(0,180px) minmax(0,1fr);gap:0;background:#fff;border-radius:20px;overflow:hidden;box-shadow:var(--shadow);margin-bottom:16px}
+.story-card .sc-cg{background:#2a2340 center/cover no-repeat;min-height:130px}
+.story-card .sc-b{padding:12px 16px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.story-card .sc-k{font-family:var(--f-num);font-weight:700;letter-spacing:.14em;font-size:12px;color:var(--acid)}
+.story-card b{font-size:18px;font-weight:800;line-height:1.3}
+.story-card p{margin:0;font-size:13px;color:var(--muted);line-height:1.6}
+.lead{margin:0 0 12px;color:var(--muted);font-size:13px}
+.about{display:flex;flex-direction:column;gap:14px;max-width:760px;margin:0 auto}
+.about .card{padding:16px}
+.about h3{font-size:17px;font-weight:800;margin-bottom:6px}
+.about p{margin:6px 0;font-size:14px}
+.about ul{margin:6px 0;padding-left:1.2em;font-size:13.5px}
+.about .eq{font-family:var(--f-num);font-size:16px;background:#FFF8EE;border:2px solid var(--line2);border-radius:12px;padding:6px 12px;display:inline-block;max-width:100%;overflow-x:auto;font-weight:600}
+.about .seesaw svg{max-width:460px;margin:0 auto}
+.credit{display:flex;gap:12px;align-items:center}
+.credit img{width:64px;height:64px;border-radius:16px;flex:none;box-shadow:var(--shadow)}
+
+/* ===== 症例画面：スマホ用のタブバーと下から出るシート ===== */
+.tabbar,.sheet-h,.sheet-bd{display:none}
+.gas-inline{background:var(--paper);border-radius:12px;padding:8px 10px 10px;font-family:var(--f-dot);color:var(--ink);box-shadow:var(--shadow);animation:pop .28s ease-out both}
+.gas-inline .gh{font-size:11.5px;color:var(--ink2);margin-bottom:5px;display:flex;justify-content:space-between;gap:8px}
+.gas-inline .gg{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px}
+.gas-inline .gt{background:#fff;border:1px solid #EFE6D6;border-radius:8px;padding:2px 6px;min-width:0;line-height:1.3}
+.gas-inline .gt span{display:block;font-size:10.5px;color:var(--ink2)}
+.gas-inline .gt b{font-weight:400;font-size:16px;font-variant-numeric:tabular-nums}
+.gas-inline .gt.H b{color:#c2361f} .gas-inline .gt.L b{color:#2d48b8}
+.gas-inline .gt.H b::after{content:" H";font-size:11px} .gas-inline .gt.L b::after{content:" L";font-size:11px}
+.gas-inline .gt.hl{background:#FFE58A;border-color:#F2C94C}
+.q .gas-inline{box-shadow:none;border:1px dashed #E8DCC8}
+.map-inline svg{width:100%;height:auto;display:block}
+.map-inline .legend{margin-top:4px}
+.mob-only{display:none}
+@media (max-width:860px){
+  .mob-only{display:block}
+  #caseView{padding-top:0;padding-bottom:calc(84px + env(safe-area-inset-bottom,0px))}
+  #caseView .monitor{position:sticky;top:var(--abh,56px);z-index:12;margin:0 calc(-1*max(16px,env(safe-area-inset-left,0px))) 10px;border-radius:0;border-width:0 0 3px;grid-template-columns:minmax(0,1fr) repeat(4,auto);box-shadow:0 4px 10px rgba(0,0,0,.12)}
+  #caseView .mon-wave{grid-column:auto;border-bottom:0;border-right:1px solid #22303D;padding:4px 6px;display:flex;align-items:center}
+  #caseView .mon-wave .who{display:none}
+  #caseView .mon-wave canvas{height:40px}
+  #caseView .mon-v{padding:3px 8px;min-width:58px}
+  #caseView .mon-v .lb{font-size:10.5px;letter-spacing:.04em}
+  #caseView .mon-v .vl{font-size:22px}
+  #caseView .mon-v.bp .vl{font-size:15px;padding-top:4px}
+  #caseView .mon-v .sub{font-size:10px;white-space:nowrap}
+  .dlg-head{display:none}
+  .dlg{border-radius:18px;overflow:visible;background:transparent;box-shadow:none}
+  .scene{height:150px;border-radius:18px;border:0;box-shadow:var(--shadow)}
+  .log{padding:12px 0 8px;background:transparent}
+  .bub{background:#fff}
+  .tabbar{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:22;gap:6px;padding:8px max(12px,env(safe-area-inset-right,0px)) calc(8px + env(safe-area-inset-bottom,0px)) max(12px,env(safe-area-inset-left,0px));background:rgba(255,250,244,.92);-webkit-backdrop-filter:blur(14px) saturate(1.4);backdrop-filter:blur(14px) saturate(1.4);border-top:2px solid rgba(46,37,69,.08)}
+  .tabbar button{position:relative;flex:1;min-height:52px;border:2px solid var(--line);border-bottom-width:4px;border-radius:14px;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;font-size:12px;font-weight:800;line-height:1.2;color:var(--fg)}
+  .tabbar button svg{width:24px;height:24px}
+  .tabbar button:active{transform:translateY(2px);border-bottom-width:2px}
+  .tabbar button.on{border-color:var(--acid);color:var(--acid)}
+  .tabbar .dot{position:absolute;top:6px;right:calc(50% - 22px);width:10px;height:10px;border-radius:50%;background:var(--acid);border:2px solid #fff}
+  .side{position:fixed;left:0;right:0;bottom:0;z-index:26;max-height:82dvh;overflow-y:auto;overscroll-behavior:contain;background:var(--body);border-radius:24px 24px 0 0;padding:0 max(14px,env(safe-area-inset-right,0px)) calc(16px + env(safe-area-inset-bottom,0px)) max(14px,env(safe-area-inset-left,0px));transform:translateY(105%);transition:transform .28s cubic-bezier(.2,.9,.3,1);box-shadow:0 -10px 30px rgba(46,37,69,.25);visibility:hidden}
+  .side.open{transform:none;visibility:visible}
+  .sheet-h{display:flex;position:sticky;top:0;z-index:1;align-items:center;justify-content:space-between;padding:14px 2px 10px;background:var(--body)}
+  .sheet-h::before{content:"";position:absolute;top:6px;left:50%;width:40px;height:5px;margin-left:-20px;border-radius:9px;background:#D8CCE0}
+  .sheet-h b{font-weight:800;font-size:15px}
+  .score-pill span+span{display:none}
+  .sheet-h button{border:0;background:#fff;border-radius:99px;padding:4px 14px;font-weight:800;box-shadow:var(--shadow);min-height:36px}
+  .side .side-top{grid-template-columns:minmax(0,1fr)!important}
+  .side[data-tab="slip"] .seesaw,.side[data-tab="slip"] .mapwrap,.side[data-tab="seesaw"] #slip,.side[data-tab="seesaw"] .mapwrap,.side[data-tab="map"] .side-top{display:none}
+  .sheet-bd{display:block;position:fixed;inset:0;z-index:25;background:rgba(30,20,50,.35);opacity:0;pointer-events:none;transition:opacity .25s}
+  .sheet-bd.on{opacity:1;pointer-events:auto}
+  .toast.in-case{bottom:calc(84px + env(safe-area-inset-bottom,0px))}
+  .knob input[type=range]{height:34px}
+  .vent .act .btn{min-height:46px}
+  .choice{min-height:48px;padding:10px 14px}
+  .nextrow .btn{min-height:46px;min-width:140px}
+  .vent{padding:10px;gap:10px}
+  .vent .knobs{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+  .vent .knob{padding:5px 8px 2px}
+  .vent .knob label{font-size:11.5px}
+  .vent .knob label .val{font-size:19px}
+  .vent .derived{grid-template-columns:repeat(3,minmax(0,1fr));gap:4px}
+  .vent .dv{padding:4px 7px}.vent .dv .k{font-size:10px}.vent .dv .v{font-size:14px}
+  .vent .map-inline{padding:4px}
+}
+@media (max-width:560px){
+  .story-card{grid-template-columns:minmax(0,1fr)}
+  .story-card .sc-cg{min-height:120px}
+  .case-card{flex-direction:row}
+  .case-card .thumb{width:108px;height:auto;flex:none}
+  .case-card .body{padding:9px 12px 10px;gap:2px}
+  .case-card .ttl{font-size:16px}
+  .q .qt{font-size:15.5px}
+}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+
+<section class="title-screen" id="title">
+  <button class="snd-btn t-snd" type="button" aria-pressed="true" aria-label="BGMを消す"></button>
+  <div class="t-bg"></div>
+  <div class="t-panel">
+    <h1 class="t-logo"><img id="tLogo" src="assets/logo_touch.webp" alt="触って覚える！血液ガスマスター" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><span class="t-logo-fb" hidden><span class="l1">触って覚える！</span><span class="l2">★ 血液ガスマスター ★</span></span></h1>
+    <div class="t-sub">こどもの血液ガス トレーニング</div>
+    <div class="t-say" id="tSay"></div>
+    <div class="t-cast"><img class="t-masc" src="assets/mascot_happy.webp" alt=""><img class="t-doc" id="tDoc" src="assets/doctor_normal.webp" alt="いぶき先生"></div>
+    <nav class="t-menu" aria-label="メニュー">
+      <button class="tbtn go" type="button" id="tGo"><img src="assets/icon_go.webp" alt=""><span><b id="tGoT">はじめる</b><i id="tGoS">症例1 から</i></span></button>
+      <button class="tbtn" type="button" data-nav="home"><img src="assets/icon_case.webp" alt="" onerror="this.onerror=null;this.src='assets/icon_course.webp'"><span><b>症例をえらぶ</b><i>2つの夜・12人の患者</i></span></button>
+      <button class="tbtn" type="button" data-nav="notesView"><img src="assets/icon_note.webp" alt="" onerror="this.onerror=null;this.src='assets/icon_cases.webp'"><span><b>マスターノート</b><i id="tNoteS">覚えた式とコツ</i></span></button>
+      <button class="tbtn" type="button" data-nav="aboutView"><img src="assets/icon_about.webp" alt=""><span><b>この教材について</b><i>pHのしくみ・免責事項</i></span></button>
+    </nav>
+    <div class="t-foot"><div class="t-prog"><i id="tProg"></i></div><span class="t-pct" id="tPct">0%</span><span class="t-series">手技マスター シリーズ</span></div>
+  </div>
+</section>
+
+<header class="appbar" id="appbar" hidden>
+  <button class="ab-back" id="abBack" type="button" aria-label="もどる"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4l-8 8 8 8"/></svg></button>
+  <div class="ab-t"><b id="abT"></b><small id="abS"></small></div>
+  <div class="score-pill" id="topScore"></div>
+  <button class="snd-btn" type="button" aria-pressed="true" aria-label="BGMを消す"></button>
+</header>
+
+<div class="wrap">
+  <main id="home" class="screen" hidden>
+    <div id="chapters"></div>
+
+  </main>
+
+  <main id="notesView" class="screen" hidden>
+    <p class="lead" id="noteCount"></p>
+    <div class="notes" id="notes"></div>
+  </main>
+
+  <main id="aboutView" class="screen" hidden>
+    <div class="about">
+      <div class="card">
+        <h3>pH は 肺 と 腎臓 の綱引き</h3>
+        <p><b class="c-co2">肺</b>は PaCO₂ を、<b class="c-hco3">腎臓</b>は HCO₃⁻ を動かします。pH を決めるのはその「比」です。つまみを動かして天秤を傾けてみよう。<span class="num" id="heroPh"></span></p>
+        <div class="seesaw" id="heroSeesaw"></div>
+        <div class="knobs" style="margin-top:6px">
+          <div class="knob"><label for="heroH">HCO₃⁻（腎臓） <span class="val c-hco3" id="heroHv">24</span></label><input type="range" id="heroH" min="4" max="45" step="1" value="24"></div>
+          <div class="knob"><label for="heroP">PaCO₂（肺） <span class="val c-co2" id="heroPv">40</span></label><input type="range" id="heroP" min="12" max="100" step="1" value="40"></div>
+        </div>
+        <p style="margin-top:10px"><span class="eq">pH = 6.1 + log<sub>10</sub>( <span class="c-hco3">HCO₃⁻</span> ÷ <span class="c-co2">0.03 × PaCO₂</span> )</span></p>
+      </div>
+      <div class="card">
+        <h3>遊びかた</h3>
+        <ul>
+          <li>症例を進めると、分析器がガス伝票を印字します。いぶき先生の質問に答えながら読み方を覚えます。</li>
+          <li>伝票・天秤・酸塩基マップは、スマホでは画面下のボタンから開けます。</li>
+          <li>人工呼吸器の症例では、つまみを動かして再検し、目標を全部満たせばクリアです。</li>
+          <li>正解した知識はマスターノートに貯まります。</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>モデルについて</h3>
+        <ul>
+          <li>pH は Henderson–Hasselbalch 式、BE は Van Slyke 式の近似、SpO₂ は Severinghaus 式で計算しています。</li>
+          <li>PaCO₂ は肺胞換気量（死腔と呼気の吐き残しを差し引いた換気）に反比例するとしています。</li>
+          <li>酸素化は PEEP による肺胞の開き具合と、肺の過膨張・血圧低下を単純化したモデルです。</li>
+          <li>代償の目安（Winter の式など）、補正アニオンギャップ、PALICC-2、ISPAD 2022 を参考にしています。</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>ご利用にあたって</h3>
+        <p>学習用シミュレーションです。換気とガス交換のモデルは教育目的に単純化しています。基準値・目標値は施設やガイドラインの最新版で確認し、実際の診療は担当医の判断で行ってください。</p>
+        <div class="credit"><img src="assets/app_icon.webp" alt="" onerror="this.remove()"><div><b>触って覚える！血液ガスマスター</b><br><small style="color:var(--muted)">手技マスター シリーズ</small></div></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+  <div class="vn" id="vn" hidden><div class="vn-cg" id="vnCg"></div><div class="vn-chap" id="vnChap" hidden></div><div class="vn-box"><div class="vn-name" id="vnName"></div><div class="vn-text" id="vnText"></div><div class="vn-next">▼ タップで次へ</div></div><button class="vn-skip" id="vnSkip" type="button">スキップ ▶▶</button></div>
+<div class="wrap">
+  <main id="caseView" class="screen" hidden>
+    <div class="monitor" id="monitor">
+      <div class="mon-wave"><div class="who" id="monWho"></div><canvas id="wave" width="600" height="140"></canvas></div>
+      <div class="mon-v hr"><div class="lb">HR</div><div class="vl" id="mHR">--</div><div class="sub">/min</div></div>
+      <div class="mon-v sp"><div class="lb">SpO₂</div><div class="vl" id="mSp">--</div><div class="sub">%</div></div>
+      <div class="mon-v rr"><div class="lb">RR</div><div class="vl" id="mRR">--</div><div class="sub" id="mRRs">/min</div></div>
+      <div class="mon-v bp"><div class="lb">NIBP</div><div class="vl" id="mBP">--</div><div class="sub" id="mT">mmHg</div></div>
+    </div>
+    <div class="stage">
+      <section class="dlg">
+        <div class="dlg-head"><div class="t" id="caseTitle"></div><button class="btn ghost" id="backBtn" type="button">病棟へ戻る</button></div>
+        <div class="scene" id="scene"><img class="pt-img" id="ptImg" alt=""><img class="masc-img" id="mascImg" src="assets/mascot_happy.webp" alt=""><img class="doc-img" id="docImg" src="assets/doctor_normal.webp" alt=""><div class="cond" id="cond"></div></div>
+        <div class="log" id="log" aria-live="polite"></div>
+      </section>
+      <aside class="side" id="side" data-tab="slip">
+        <div class="sheet-h"><b id="sheetT">ガス伝票</b><button type="button" id="sheetX">とじる</button></div>
+        <div class="side-top">
+          <div id="slip"></div>
+          <div class="card seesaw"><h5>肺 ⇄ 腎臓 の天秤 <span class="num" id="ratioTxt"></span></h5><div id="seesaw"></div></div>
+        </div>
+        <div class="card mapwrap"><h5>酸塩基マップ <button class="toggle" id="allBands" type="button">全ゾーン表示</button></h5><div id="map"></div><div class="legend" id="legend"></div></div>
+      </aside>
+    </div>
+    <div class="sheet-bd" id="sheetBd"></div>
+    <nav class="tabbar" id="tabbar" aria-label="検査とグラフ">
+      <button type="button" data-tab="slip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><path d="M6 2.5h12v19l-2-1.4-2 1.4-2-1.4-2 1.4-2-1.4-2 1.4z"/><path d="M9 7.5h6M9 11h6M9 14.5h4"/></svg>ガス伝票<i class="dot" hidden></i></button>
+      <button type="button" data-tab="seesaw"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5l18-3M12 8v12M8 20h8"/><circle cx="5" cy="13" r="2.4"/><circle cx="19" cy="10.6" r="2.4"/></svg>天秤</button>
+      <button type="button" data-tab="map"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 3v17h17"/><path d="M7 16c3-1 6-4 12-10" stroke-dasharray="2 2.6"/><circle cx="13" cy="11" r="2.4" fill="currentColor"/></svg>マップ</button>
+    </nav>
+  </main>
+</div>
+
+<script>
+"use strict";
+/* ========== 生理学の式 ========== */
+const PH=(h,p)=>6.1+Math.log10(h/(0.03*p));
+const BEx=(h,ph)=>0.93*(h-24.4+14.8*(ph-7.4));
+const SPO2=po2=>100/(23400/(Math.pow(po2,3)+150*po2)+1);
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+const f1=x=>(Math.round(x*10)/10).toFixed(1);
+const f0=x=>String(Math.round(x));
+const f2=x=>(Math.round(x*100)/100).toFixed(2);
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const RM=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+const $=s=>document.querySelector(s);
+const el=(tag,cls,html)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(html!=null)e.innerHTML=html;return e;};
+
+/* 小児（新生児期以降）の基準値 */
+const REF={cohb:[0,2],methb:[0,1.5],ica:[1.15,1.35],ph:[7.35,7.45],pco2:[35,45],po2:[80,100],hco3:[22,26],be:[-2,2],na:[135,145],k:[3.5,5.0],cl:[98,106],glu:[70,140],lac:[0,2],alb:[3.5,5.0]};
+
+/* ========== マスターノート ========== */
+const CARDS={
+  hh:{t:'Henderson–Hasselbalch',fx:'pH = 6.1 + log(HCO₃⁻ ÷ 0.03×PaCO₂)',p:'HCO₃⁻ と 0.03×PaCO₂ の比が 20:1 のとき pH 7.40。比が変わらなければ pH は変わらない。'},
+  racomp:{t:'呼吸性アシドーシスの代償',fx:'PaCO₂ 10↑ で HCO₃⁻ 急性 +1 ／ 慢性 +3.5',p:'腎臓の代償には3〜5日かかる。HCO₃⁻の上がり幅で急性か慢性かを見分ける。'},
+  vapaco2:{t:'換気と PaCO₂',fx:'PaCO₂ ∝ CO₂産生 ÷ 肺胞換気量',p:'肺胞換気量 =（Vt − 死腔量）× 呼吸数。Vt を減らすと死腔の割合が増えて効率が落ちる。'},
+  oxy:{t:'酸素化の指標',fx:'P/F = PaO₂ ÷ FiO₂ ／ PAO₂ = FiO₂×713 − PaCO₂÷0.8',p:'A-aDO₂ = PAO₂ − PaO₂。PaCO₂が高いと肺胞の酸素分圧も下がる。'},
+  winter:{t:'Winter の式',fx:'予測 PaCO₂ = 1.5 × HCO₃⁻ + 8 ± 2',p:'代謝性アシドーシスの呼吸性代償。実測がこの範囲から外れたら呼吸性障害の合併。'},
+  ag:{t:'アニオンギャップ (AG)',fx:'AG = Na⁺ −（Cl⁻ + HCO₃⁻）基準 12 ± 2',p:'開大：乳酸・ケトン体・腎不全・中毒。正常（高Cl性）：下痢・尿細管性アシドーシス・大量生食。基準値は測定法と施設で異なる。'},
+  malk:{t:'代謝性アルカローシス',fx:'予測 PaCO₂ = 40 + 0.7 ×（HCO₃⁻ − 24）± 5',p:'胃液喪失は Cl 反応性（尿Cl < 20 mEq/L）。治療は Cl⁻ と K⁺ の補充。'},
+  ralk:{t:'呼吸性アルカローシスの代償',fx:'PaCO₂ 10↓ で HCO₃⁻ 急性 −2 ／ 慢性 −4〜5',p:'不安・疼痛・喘息初期・発熱・敗血症初期などで起こる。'},
+  trend:{t:'“正常値”の罠',fx:'頻呼吸 + PaCO₂ 正常 ＝ 疲労のサイン',p:'喘息発作でPaCO₂が下がらない・上がってくるのは呼吸不全の前触れ。ガスは1点ではなく軌跡で読む。'},
+  delta:{t:'Δ比（デルタ・デルタ）',fx:'ΔAG ÷ ΔHCO₃⁻ ＝（AG − 12）÷（24 − HCO₃⁻）',p:'< 1：正AG性アシドーシスの合併、1〜2：純粋なAG開大性、> 2：代謝性アルカローシスの合併。'},
+  intub:{t:'代謝性アシドーシス患者の挿管',fx:'挿管前の分時換気量を呼吸器で引き継ぐ',p:'“標準設定”にするとPaCO₂が急上昇し、pH が致死的に低下する。'},
+  mixed:{t:'混合性酸塩基障害',fx:'予測代償の範囲外 ＝ もう1つの障害',p:'代償は正常値を超えない。ゾーンから外れた点は混合性障害を疑う。'},
+  agcorr:{t:'アルブミン補正AG',fx:'補正AG = AG + 2.5 ×（4.0 − Alb[g/dL]）',p:'低アルブミン血症ではAGが見かけ上小さくなり、乳酸アシドーシスを見落としやすい。'},
+  oi:{t:'OI と PARDS 重症度',fx:'OI = MAP × FiO₂ × 100 ÷ PaO₂',p:'PALICC-2（侵襲的換気中）：OI 4〜16 未満は軽症〜中等症、16 以上は重症。'},
+  lung:{t:'肺保護換気',fx:'Vt ≤ 8 mL/kg・Pplat ≤ 28・ΔP ≤ 15 cmH₂O',p:'コンプライアンスが悪い肺では Vt 3〜6 mL/kg。中等症〜重症PARDSでは pH ≥ 7.20 までの高CO₂を許容。'},
+  airtrap:{t:'閉塞性疾患とエアトラッピング',fx:'呼気時間 ≥ 3τ（時定数 τ = 抵抗 × コンプライアンス）',p:'息を吐ききれないと内因性PEEPが生じる。呼吸数を上げるより Vt を少し増やす方が効率的なことがある。'},
+  aado2:{t:'A-aDO₂',fx:'A-aDO₂ = PAO₂ − PaO₂（PAO₂ = FiO₂×713 − PaCO₂÷0.8）',p:'室内気で正常は 5〜15 程度（年齢とともに広がる）。開大なら肺の病気、正常なら過換気・低換気など肺の外の原因。'},
+  ica:{t:'アルカレミアとイオン化 Ca',fx:'pH↑ → アルブミンに Ca が結合 → iCa↓',p:'Ca の総量は変わらなくても働ける iCa が減り、しびれ・テタニーが起きる。過換気が落ち着けば戻る。'},
+  cohb:{t:'SpO₂ の落とし穴（CO中毒）',fx:'パルスオキシメータは COHb を酸素化Hbと区別できない',p:'PaO₂ が正常でも酸素含量は減る。CO-オキシメトリーで COHb を測る。100% 酸素で CO の半減期は数時間から約1時間に短くなる。'},
+  nh3:{t:'新生児の呼吸性アルカローシス',fx:'意識障害 ＋ 呼吸性アルカローシス → アンモニアを測る',p:'アンモニアは呼吸中枢を刺激する。代謝性アシドーシスのない過換気は尿素サイクル異常症のサイン。'},
+  uag:{t:'尿アニオンギャップ',fx:'尿AG = 尿Na⁺ + 尿K⁺ − 尿Cl⁻',p:'正AG性代謝性アシドーシスで、負なら NH₄⁺ を出せている（下痢など）、正なら腎臓が酸を出せない（遠位RTA）。'},
+  alkali:{t:'アルカリ補充が正解のとき',fx:'HCO₃⁻ を作れない・失い続ける病気には補充する',p:'DKA や乳酸アシドーシスでは原則不要。遠位RTA ではクエン酸製剤や重曹が治療の柱。K の補正を先に。'},
+  paco2brain:{t:'PaCO₂ と脳血流',fx:'PaCO₂ 1 mmHg↓ で脳血流 約 2〜4%↓（目安）',p:'重症頭部外傷では予防的な過換気（PaCO₂ < 30）を避け、35〜40 を目安に。強い過換気は脳ヘルニア徴候時の一時しのぎ。'},
+  posthyper:{t:'慢性高 CO₂ の子の換気目標',fx:'目標 PaCO₂ ＝ その子の“いつもの値”',p:'腎臓が HCO₃⁻ を貯めているので、急に PaCO₂ 40 にすると強いアルカレミア（post-hypercapnic alkalosis）になる。'}
+};
+
+/* ========== 症例データ ========== */
+const CASES=[
+{id:'bronch',no:1,lv:'入門',title:'RSV細気管支炎で挿管',pt:'ハルくん',age:'生後3か月',wt:5,tag:['急性呼吸性アシドーシス','co2'],
+ vitals:{hr:168,rr:20,bp:'82/46',t:'37.8'},
+ intro:[['n','生後3か月のハルくん（5 kg）。RSV細気管支炎で入院中、無呼吸発作を繰り返し気管挿管された。'],['m','ぼくはぷくぷく！ 吐く息のなかの CO₂ のこと、いっしょに見ていこうね。'],['d','挿管30分後の動脈血ガスが出たよ。いっしょに順番に読んでいこう。ガスは毎回<b>同じ順番</b>で読むのがコツ。']],
+ gas:{label:'挿管30分後',src:'動脈血',fio2:0.40,pco2:68,hco3:27,po2:78,na:137,k:4.2,cl:103,glu:110,lac:1.4,alb:3.8},
+ steps:[
+  {h:'STEP 1　pH',q:'まずpH。7.22 はどちら？',focus:['ph'],ch:[['アシデミア（酸性に傾いている）',1],['正常範囲',0],['アルカレミア（アルカリ性に傾いている）',0]],hint:'基準は 7.35〜7.45。',
+   ex:'pH 7.35 未満なのでアシデミア。天秤が左の<b class="c-co2">CO₂側</b>（酸性側）に傾いているね。pH は <span class="f">HCO₃⁻ ÷ 0.03×PaCO₂</span> の比で決まる。つまり<b class="c-hco3">腎臓</b>と<b class="c-co2">肺</b>の綱引きなんだ。',card:'hh'},
+  {h:'STEP 2　一次性変化',q:'酸性にしている原因は、肺（PaCO₂）と代謝（HCO₃⁻）のどちら？',focus:['pco2','hco3'],ch:[['肺：PaCO₂ 68 が高い → 呼吸性',1],['代謝：HCO₃⁻ 27 → 代謝性',0]],hint:'pH を下げる方向に動いているのはどっち？ HCO₃⁻ が下がれば酸性、PaCO₂ が上がれば酸性。',
+   ex:'PaCO₂ 68 mmHg。CO₂ が溜まって酸性になっている＝<b>呼吸性アシドーシス</b>。HCO₃⁻ 27 はむしろ高めで、酸性の原因にはなれない。'},
+  {h:'STEP 3　代償',q:'急性？ それとも慢性？ HCO₃⁻ の上がり方で見分けよう。',focus:['hco3'],reveal:['racA','racC'],expect:[{p:68,h:26.8,l:'急性の予測'},{p:68,h:33.8,l:'慢性の予測'}],
+   ch:[['急性呼吸性アシドーシス',1],['慢性呼吸性アシドーシス',0],['代謝性アルカローシスの合併',0]],hint:'急性なら PaCO₂ 10 上昇ごとに HCO₃⁻ +1、慢性なら +3.5。',
+   ex:'予測値を計算すると<br>急性：24 + 1 × (68−40)/10 = <b>26.8</b><br>慢性：24 + 3.5 × (68−40)/10 = <b>33.8</b><br>実測 27 なので<b>急性</b>。腎臓が HCO₃⁻ を貯めるには3〜5日かかる。マップで点が<b>急性ゾーン</b>に乗っているのを確かめて。',card:'racomp'},
+  {h:'STEP 4　酸素化',q:'酸素化も確認。PaO₂ 78 mmHg、FiO₂ 0.40 の P/F 比は？',focus:['po2'],oxy:true,ch:[['78',0],['195',1],['312',0]],hint:'P/F = PaO₂ ÷ FiO₂（FiO₂ は小数で）。',
+   ex:'P/F = 78 ÷ 0.40 = <b>195</b>。PaCO₂ が高いと肺胞気の酸素分圧 <span class="f">PAO₂ = FiO₂×713 − PaCO₂÷0.8</span> も下がるから、換気を良くすると酸素化も少し改善する。',card:'oxy'}
+ ],
+ ventIntro:[['d','では呼吸器を調整しよう。目標は <b>pH 7.30 以上</b>。細気管支炎では多少の高CO₂は許容していい。'],['d','ただし細気管支炎は<b>息を吐きにくい</b>病気。呼吸数を上げすぎると吐ききれずに空気が溜まる（エアトラッピング）。呼気時間は時定数τの3倍以上を確保しよう。マップの<b>点線の円</b>は設定を変えたときの予測位置だよ。']],
+ vent:{vd:3.5,tau:0.35,crs:0.8,h0:27,p0:68,po2_0:78,pOpen:4,pOver:12,init:{rr:20,vt:6,peep:6,fio2:0.40},controls:['rr','vt','peep','fio2'],
+   goals:r=>[['pH ≥ 7.30',r.ph>=7.295],['Vt ≤ 8 mL/kg',r.s.vt<=8],['エアトラッピングなし（呼気時間 ≥ 3τ）',r.te>=3*r.c.tau-0.005],['SpO₂ ≥ 92%',r.spo2>=92]]},
+ ventDone:'できた！ pH が戻ったね。<b>肺胞換気量 =（Vt − 死腔量）× 呼吸数</b>。PaCO₂ は肺胞換気量に反比例する。乳児は気管チューブや回路の死腔の影響が大きいから、Vt を下げすぎると換気効率が一気に落ちることも覚えておこう。',
+ cardsEnd:['vapaco2','airtrap']
+},
+{id:'gastro',no:2,lv:'基本',title:'胃腸炎による脱水',pt:'ソラちゃん',age:'1歳',wt:10,tag:['正AG代謝性アシドーシス','acid'],
+ vitals:{hr:168,rr:38,bp:'84/50',t:'37.6'},
+ intro:[['n','1歳のソラちゃん（10 kg）。3日前から水様下痢が1日10回以上。ぐったりして救急外来へ。CRT 4秒、四肢が冷たい。'],['ns','先生、血液ガス出ました！ 呼吸がずっと速いです。']],
+ gas:{label:'来院時',src:'動脈血',fio2:0.21,pco2:26,hco3:12,po2:96,na:138,k:3.4,cl:114,glu:72,lac:1.8,alb:4.0},
+ steps:[
+  {h:'STEP 1　pH',q:'pH 7.29。まず判断するのは？',focus:['ph'],ch:[['正常範囲',0],['アシデミア',1],['アルカレミア',0]],hint:'7.35 より低い？高い？',ex:'7.35 未満でアシデミア。天秤は酸性側に傾いている。'},
+  {h:'STEP 2　一次性変化',q:'原因は肺？ 代謝？',focus:['pco2','hco3'],ch:[['肺：PaCO₂ 26 → 呼吸性',0],['代謝：HCO₃⁻ 12 が低い → 代謝性',1]],hint:'PaCO₂ 26 は低い＝むしろアルカリ方向。',
+   ex:'HCO₃⁻ 12 と大きく低下 → <b>代謝性アシドーシス</b>。PaCO₂ 26 は低いので、肺は酸を外に吐き出して<b>助けている側</b>。天秤の右（HCO₃⁻）が軽くなり、左（CO₂）も軽くしてバランスを取ろうとしているのが見える？'},
+  {h:'STEP 3　代償',q:'PaCO₂ 26 は代償として適切？',focus:['pco2'],reveal:['macid'],expect:[{p:26,h:12,l:'Winter 予測 24〜28',range:[24,28]}],
+   ch:[['適切な呼吸性代償',1],['呼吸性アシドーシスの合併（代償が足りない）',0],['呼吸性アルカローシスの合併（代償しすぎ）',0]],hint:'Winter の式：予測 PaCO₂ = 1.5 × HCO₃⁻ + 8 ± 2。',
+   ex:'Winter の式で 1.5 × 12 + 8 = <b>26 ± 2（24〜28）</b>。実測 26 なので適切な代償。速い呼吸でCO₂を吐いて pH を守っている。呼吸が速いのは「肺の病気」ではなく<b>代償</b>だね。',card:'winter'},
+  {h:'STEP 4　アニオンギャップ',q:'アニオンギャップを計算しよう。Na 138、Cl 114、HCO₃⁻ 12。',gamble:true,ch:[['12',1],['24',0],['36',0]],hint:'AG = Na⁺ −（Cl⁻ + HCO₃⁻）。',
+   ex:'AG = 138 −（114 + 12）= <b>12</b>。正常AG、つまり<b>高Cl性</b>代謝性アシドーシス。グラフで HCO₃⁻ が減った分だけ Cl⁻ の柱が伸び、電気的なバランスを取っている。',card:'ag'},
+  {h:'STEP 5　原因',q:'正AG代謝性アシドーシス。この子の原因として最も考えやすいのは？',ch:[['糖尿病性ケトアシドーシス',0,'DKA はケトン体が増えるので AG が開大する。'],['下痢による HCO₃⁻ の喪失',1],['乳酸アシドーシス',0,'乳酸は「見えない陰イオン」なので AG が開大する。'],['嘔吐による胃液の喪失',0,'胃液（HCl）を失うと代謝性アルカローシスになる。']],
+   ex:'腸液は HCO₃⁻ が豊富で、下痢で失われる。正AGの代表は<b>下痢・尿細管性アシドーシス（RTA）・大量生食</b>。迷ったら尿AG（Na + K − Cl）：下痢なら負、遠位RTAなら正になる。'}
+ ],
+ treat:{q:'頻脈、CRT 4秒。最初の治療は？',ch:[
+   ['炭酸水素ナトリウム（メイロン）を静注して pH を補正',0,'HCO₃⁻ を足すのは根本治療ではない。循環が戻れば腎臓が自分で HCO₃⁻ を作り直す。'],
+   ['等張晶質液（乳酸／酢酸リンゲル液など）20 mL/kg を急速投与',1],
+   ['5% ブドウ糖液を急速投与',0,'低張液の急速投与は循環を戻せず、低Na血症の危険がある。'],
+   ['呼吸が速く苦しそうなので鎮静する',0,'速い呼吸は代償。止めると PaCO₂ が上がり pH が急落する。']],
+   result:{label:'輸液4時間後',src:'動脈血',fio2:0.21,pco2:30,hco3:16,po2:94,na:139,k:3.6,cl:110,glu:96,lac:1.2,alb:3.8},vitals:{hr:132,rr:28,bp:'92/56'},
+   ex:'循環が戻り pH 7.35 に改善。HCO₃⁻ が上がるにつれて、代償の呼吸も落ち着いてきた（PaCO₂ 26 → 30）。生理食塩水を大量に使うと Cl 負荷で高Cl性アシドーシスが悪化することがあるので、バランス晶質液が好まれる。'},
+ cardsEnd:[]
+},
+{id:'hps',no:3,lv:'基本',title:'噴水状嘔吐の乳児',pt:'ユウトくん',age:'生後5週',wt:4,tag:['低Cl性代謝性アルカローシス','base'],
+ vitals:{hr:150,rr:30,bp:'80/48',t:'36.9'},
+ intro:[['n','生後5週のユウトくん（4.0 kg）。1週間前から哺乳のたびに噴水状に嘔吐し、体重が減っている。エコーで幽門筋の肥厚を確認。'],['d','肥厚性幽門狭窄症だね。外科は「今日中に手術を」と言っているけど、まずガスを読もう。']],
+ gas:{label:'入院時',src:'動脈血',fio2:0.21,pco2:48,hco3:36,po2:78,na:134,k:3.0,cl:84,glu:80,lac:1.0,alb:3.9},
+ steps:[
+  {h:'STEP 1　pH',q:'pH 7.50。これは？',focus:['ph'],ch:[['アシデミア',0],['正常範囲',0],['アルカレミア',1]],hint:'7.45 より高い。',ex:'7.45 を超えているのでアルカレミア。今度は天秤が<b class="c-hco3">HCO₃⁻側</b>に傾いている。'},
+  {h:'STEP 2　一次性変化',q:'アルカリ性にしているのは？',focus:['pco2','hco3'],ch:[['代謝：HCO₃⁻ 36 が高い → 代謝性',1],['肺：PaCO₂ 48 → 呼吸性',0]],hint:'PaCO₂ が上がるのは酸性方向。アルカリにできるのは？',
+   ex:'HCO₃⁻ 36 → <b>代謝性アルカローシス</b>。PaCO₂ 48 は酸性方向で、肺が代償している。'},
+  {h:'STEP 3　代償',q:'PaCO₂ 48 は代償として妥当？',focus:['pco2'],reveal:['malk'],expect:[{p:48.4,h:36,l:'予測 43〜53',range:[43.4,53.4]}],
+   ch:[['適切な呼吸性代償',1],['呼吸性アシドーシスの合併',0],['呼吸性アルカローシスの合併',0]],hint:'予測 PaCO₂ = 40 + 0.7 ×（HCO₃⁻ − 24）± 5。',
+   ex:'40 + 0.7 ×（36 − 24）= <b>48.4 ± 5</b>。適切な代償。ただし代償とは「<b>呼吸を浅く遅くしている</b>」こと。PaO₂ 78 と少し低いのはそのためだよ。',card:'malk'},
+  {h:'STEP 4　電解質',q:'Cl 84、K 3.0。このアルカローシスのタイプは？',focus:['cl','k'],ch:[['Cl 抵抗性（ミネラルコルチコイド過剰など）',0,'Cl 抵抗性は Cl を補っても治らないタイプ。嘔吐の病歴と合わない。'],['Cl 反応性（胃液の喪失）',1],['呼吸性アルカローシス',0,'PaCO₂ は上がっている。']],
+   ex:'胃液（HCl）を吐くと H⁺ と Cl⁻ を失う。Cl⁻ が足りないと腎臓は HCO₃⁻ を捨てられない（尿Cl < 20 mEq/L が目安）。脱水でアルドステロンが働くと K⁺ と H⁺ を尿に捨て、<b>低K血症</b>と<b>奇異性酸性尿</b>になる。'}
+ ],
+ treat:{q:'外科は「今日中に幽門筋切開術を」と言っている。どうする？',ch:[
+   ['すぐに手術室へ',0,'アルカローシスが残ったまま麻酔をかけると呼吸中枢が抑えられ、<b>術後無呼吸</b>の危険がある。'],
+   ['生理食塩水ベースの輸液と KCl で補正してから手術',1],
+   ['5% ブドウ糖液だけで維持',0,'Cl⁻ も K⁺ も補えず、アルカローシスは治らない。']],
+   result:{label:'補液24時間後',src:'動脈血',fio2:0.21,pco2:41,hco3:26,po2:88,na:138,k:4.0,cl:102,glu:88,lac:0.9,alb:3.7},vitals:{hr:136,rr:36,bp:'84/50'},
+   ex:'Cl⁻ と K⁺ を補うと、腎臓が HCO₃⁻ を捨てられるようになり pH 7.43 に。術前の目安は <b>HCO₃⁻ 30 未満、Cl⁻ 100 前後以上</b>（施設基準を確認）。幽門狭窄症は外科的緊急ではなく<b>内科的緊急</b>だね。'},
+ cardsEnd:[]
+},
+{id:'asthma',no:4,lv:'応用',title:'喘息大発作の経過',pt:'ケンタくん',age:'6歳',wt:20,tag:['呼吸性アルカローシス → ？','co2'],
+ vitals:{hr:140,rr:44,bp:'118/70',t:'37.2',spo2:92},
+ intro:[['n','6歳のケンタくん（20 kg）。喘息大発作で救急搬送。肩で息をし、呼気性喘鳴が著明。酸素マスクを装着した。'],['d','来院時のガスだよ。この子は1時間後にもう一度ガスを採る。<b>2回の変化</b>に注目してね。']],
+ gas:{label:'来院時',src:'動脈血',fio2:0.40,pco2:31,hco3:22.2,po2:70,na:139,k:3.6,cl:104,glu:150,lac:2.2,alb:4.2},
+ steps:[
+  {h:'STEP 1　pH',q:'pH 7.48 は？',focus:['ph'],ch:[['アルカレミア',1],['アシデミア',0],['正常範囲',0]],hint:'7.45 より高い。',ex:'アルカレミア。'},
+  {h:'STEP 2　一次性変化',q:'原因は？',focus:['pco2','hco3'],ch:[['代謝：HCO₃⁻ 22.2 → 代謝性',0],['肺：PaCO₂ 31 が低い → 呼吸性',1]],hint:'CO₂ が減るとアルカリ方向。',ex:'速い呼吸でCO₂を吐きすぎている → <b>呼吸性アルカローシス</b>。'},
+  {h:'STEP 3　代償',q:'急性？ 慢性？',focus:['hco3'],reveal:['ralkA','ralkC'],expect:[{p:31,h:22.2,l:'急性の予測'},{p:31,h:19.5,l:'慢性の予測'}],
+   ch:[['慢性呼吸性アルカローシス',0],['急性呼吸性アルカローシス',1],['代謝性アシドーシスの合併',0]],hint:'急性なら PaCO₂ 10 低下ごとに HCO₃⁻ −2、慢性なら −4〜5。',
+   ex:'急性：24 − 2 × (40−31)/10 = <b>22.2</b>、慢性：24 − 5 × 0.9 = <b>19.5</b>。実測 22.2 で急性。喘息発作の<b>典型的な初期像</b>。ここまでは「よくある」ガスだね。',card:'ralk'},
+  {pre:{say:[['n','β₂刺激薬吸入を繰り返し、ステロイドも静注した。1時間後、ケンタくんは静かになった。呼吸数は 44 → 30、喘鳴も聞こえにくい。SpO₂ 90%。'],['ns','落ち着いてきましたね。念のためガス再検しました。']],
+     gas:{label:'1時間後',src:'動脈血',fio2:0.40,pco2:44,hco3:24.4,po2:60,na:139,k:3.4,cl:104,glu:182,lac:2.6,alb:4.2},vitals:{hr:150,rr:30,bp:'110/66',spo2:90}},
+   h:'STEP 4　経過',q:'pH 7.37・PaCO₂ 44。どう評価する？',focus:['ph','pco2'],ch:[['正常範囲に戻った。改善している',0,'数値だけ見れば正常。でも症状と<b>経過</b>を合わせて考えよう。'],['呼吸筋疲労のサイン。危険な状態',1],['採血のエラーなので再検する',0,'検体エラーを疑う前に、臨床経過と合うか考えよう。']],
+   ex:'マップを見て。点は正常の箱に入ったけど、<b>来た道</b>は「低CO₂ → 正常」。頻呼吸の喘息児で PaCO₂ が下がらないのは、CO₂を吐ききれなくなった証拠。喘鳴が減ったのは<b>サイレントチェスト</b>（空気が動いていない）かもしれない。',card:'trend'}
+ ],
+ treat:{q:'次の一手は？',ch:[
+   ['不穏なので鎮静薬を使って落ち着かせる',0,'呼吸ドライブを落とし、一気に CO₂ が貯留して呼吸停止に至る危険がある。'],
+   ['正常値なので一般病棟で経過観察',0,'このまま疲労が進むと PaCO₂ は急上昇する。'],
+   ['硫酸マグネシウム静注と β₂ 継続、HFNC／NPPV を準備し PICU に連絡',1]],
+   result:{label:'治療強化2時間後',src:'動脈血',fio2:0.40,pco2:38,hco3:23.8,po2:82,na:140,k:3.5,cl:105,glu:176,lac:2.4,alb:4.1},vitals:{hr:128,rr:32,bp:'112/64',spo2:95},
+   ex:'呼吸仕事量が減り、換気音が戻ってきた。PaCO₂ 38 で安定。喘息の挿管は気胸や循環破綻のリスクが高い最後の手段だけど、<b>準備は早めに</b>。ガスは1点ではなく<b>軌跡</b>で読もう。'},
+ cardsEnd:[]
+},
+{id:'dka',no:5,lv:'応用',title:'DKAと人工呼吸器の罠',pt:'ミオちゃん',age:'10歳',wt:30,tag:['AG開大性代謝性アシドーシス','acid'],
+ vitals:{hr:132,rr:36,bp:'104/62',t:'36.8'},
+ intro:[['n','10歳のミオちゃん（30 kg）。2週間前から多飲・多尿、今朝から嘔吐と腹痛。深く大きな呼吸をしている（クスマウル呼吸）。血糖 520 mg/dL、血中βヒドロキシ酪酸 6.2 mmol/L。'],['d','糖尿病性ケトアシドーシス（DKA）だね。ガスを読もう。']],
+ gas:{label:'来院時',src:'動脈血',fio2:0.21,pco2:17,hco3:6,po2:112,na:134,k:5.6,cl:98,glu:520,lac:1.6,alb:4.0},
+ steps:[
+  {h:'STEP 1　pH',q:'pH 7.17 は？',focus:['ph'],ch:[['アルカレミア',0],['アシデミア',1],['正常範囲',0]],hint:'7.35 未満。',ex:'アシデミア。ISPAD 2022 の基準（pH < 7.2 または HCO₃⁻ < 10）では<b>中等症</b>のDKA。'},
+  {h:'STEP 2　一次性変化',q:'原因は？',focus:['pco2','hco3'],ch:[['代謝：HCO₃⁻ 6 → 代謝性',1],['肺：PaCO₂ 17 → 呼吸性',0]],hint:'PaCO₂ 17 はアルカリ方向。',ex:'<b>代謝性アシドーシス</b>。PaCO₂ 17 は必死の代償。'},
+  {h:'STEP 3　代償',q:'PaCO₂ 17 は代償として適切？',focus:['pco2'],reveal:['macid'],expect:[{p:17,h:6,l:'Winter 予測 15〜19',range:[15,19]}],
+   ch:[['呼吸性アルカローシスの合併',0],['適切な呼吸性代償',1],['呼吸性アシドーシスの合併',0]],hint:'1.5 × 6 + 8 ± 2。',
+   ex:'1.5 × 6 + 8 = <b>17 ± 2</b>。適切。クスマウル呼吸で CO₂ を<b>ここまで</b>下げて、やっと pH 7.17。<b>この呼吸の量を覚えておいて</b>。後で効いてくる。',card:'winter'},
+  {h:'STEP 4　アニオンギャップ',q:'AG は？ Na 134、Cl 98、HCO₃⁻ 6。',gamble:true,ch:[['18',0],['30',1],['36',0]],hint:'AG = Na⁺ −（Cl⁻ + HCO₃⁻）。',
+   ex:'134 −（98 + 6）= <b>30</b>。AG開大。ケトン体（βヒドロキシ酪酸・アセト酢酸）という「見えない陰イオン」が HCO₃⁻ と入れ替わった。',card:'ag'},
+  {h:'STEP 5　Δ比',q:'AGの増加分（ΔAG）と HCO₃⁻ の減少分（ΔHCO₃⁻）を比べると？',gamble:true,ch:[['比 < 1 → 正AG性アシドーシスの合併',0],['比 ≈ 1 → 純粋なAG開大性アシドーシス',1],['比 > 2 → 代謝性アルカローシスの合併',0]],hint:'ΔAG = 30 − 12、ΔHCO₃⁻ = 24 − 6。',
+   ex:'ΔAG = 30 − 12 = 18、ΔHCO₃⁻ = 24 − 6 = 18 → 比 <b>1.0</b>。増えたケトン体の分だけ HCO₃⁻ が減った、純粋なAG開大性アシドーシス。治療中は生食の影響で高Cl性の要素が加わり、比が下がってくることもある。',card:'delta'},
+  {h:'STEP 6　治療',teach:['alkali'],q:'HCO₃⁻ 6。炭酸水素ナトリウムで補正する？',ch:[['補正する。pH 7.2 未満なので必要',0,'数値を見て反射的に補正したくなるけど、DKAでは利益がなく害がある。'],['原則使わない。輸液とインスリンで原因を止める',1]],
+   ex:'ISPAD では原則投与しない（脳浮腫リスク、低K血症の悪化、髄液の逆説的アシドーシス）。例外は致死的な高K血症など。治療の柱は<b>輸液とインスリン</b>でケトン産生を止めること。'}
+ ],
+ ventPre:{say:[['n','輸液とインスリンを開始した。しかし1時間後、ミオちゃんの意識レベルが低下（GCS 8）。気道確保のため気管挿管となった。'],['ns','研修医の先生が呼吸器を「いつもの設定」にしました。RR 20、Vt 7 mL/kg です。'],['n','15分後……モニタのアラームが鳴った。']],first:true,
+   after:[['d','<b>pH が 6.9 台まで落ちた！</b> マップを見て。点が上ではなく<b class="c-co2">CO₂ の高い方</b>へ飛んでいる。'],['d','挿管前、彼女は自分の呼吸で PaCO₂ 17 まで下げていた。挿管したらその仕事は呼吸器が引き継がないといけない。アシドーシスが進むと K⁺ も細胞外へ出て、不整脈の危険もある。'],['d','目標は<b>挿管前の代償レベル（PaCO₂ ≤ 22）</b>。肺は正常だから Vt は 8 mL/kg まで。点線の予測円を見ながら呼吸数と Vt を調整しよう。']]},
+ vent:{vd:2.2,tau:0.3,crs:1.0,h0:6,p0:17,k:4400,gFixed:0.75,init:{rr:20,vt:7,peep:5,fio2:0.40},controls:['rr','vt'],alarmPH:7.05,
+   goals:r=>[['PaCO₂ ≤ 22 mmHg（挿管前の代償を再現）',r.pco2<=22.05],['Vt ≤ 8 mL/kg',r.s.vt<=8],['エアトラッピングなし（呼気時間 ≥ 3τ）',r.te>=3*r.c.tau-0.005]]},
+ ventDone:'危機を脱した。代謝性アシドーシスの患者を挿管するときは、<b>挿管前の分時換気量</b>を引き継ぐ設定を最初から入れておく。可能なら挿管自体を避ける判断も大事。分時換気量が健常児の2倍以上になっているのを確認しよう。',
+ cardsEnd:['intub']
+},
+{id:'sepsis',no:6,lv:'挑戦',title:'敗血症性ショックとPARDS',pt:'リクくん',age:'2歳',wt:12,tag:['混合性アシドーシス・低酸素','acid'],
+ vitals:{hr:172,rr:24,bp:'74/38',t:'39.4'},
+ intro:[['n','2歳のリクくん（12 kg）。肺炎から敗血症性ショックに進行し、挿管されてPICUに入室した。輸液と抗菌薬、ノルアドレナリンを開始。胸部X線で両側浸潤影。'],['d','最難関だよ。酸塩基と酸素化、両方を読む。']],
+ gas:{label:'PICU入室時',src:'動脈血',fio2:0.80,pco2:45,hco3:14,po2:55,na:136,k:4.4,cl:104,glu:168,lac:6.0,alb:2.0},
+ steps:[
+  {h:'STEP 1　pH',q:'pH 7.12 は？',focus:['ph'],ch:[['アシデミア',1],['アルカレミア',0],['正常範囲',0]],ex:'高度なアシデミア。'},
+  {h:'STEP 2　一次性変化',q:'まず目立つ一次性変化は？',focus:['pco2','hco3'],ch:[['肺：PaCO₂ 45 → 呼吸性',0,'PaCO₂ 45 は基準の上限。もっと大きく動いている値は？'],['代謝：HCO₃⁻ 14 → 代謝性',1]],
+   ex:'HCO₃⁻ 14 と大きく低下 → <b>代謝性アシドーシス</b>。PaCO₂ 45 は一見「正常」……でも本当にそれでいい？ 次で確かめよう。'},
+  {h:'STEP 3　代償',q:'PaCO₂ 45 は代償として適切？',focus:['pco2'],reveal:['macid'],expect:[{p:29,h:14,l:'Winter 予測 27〜31',range:[27,31]}],
+   ch:[['適切な呼吸性代償',0],['呼吸性アルカローシスの合併',0],['呼吸性アシドーシスの合併（代償できていない）',1]],hint:'1.5 × 14 + 8 ± 2 を計算してみよう。',
+   ex:'1.5 × 14 + 8 = <b>29 ± 2（27〜31）</b>。本来ならそこまで下げられるはずなのに 45。<b>代償できていない＝呼吸性アシドーシスの合併</b>（混合性アシドーシス）。マップで点が代謝性アシドーシスのゾーンから<b>右に外れている</b>のが見える？',card:'mixed'},
+  {h:'STEP 4　補正AG',q:'AG = 136 −（104 + 14）= 18。でもアルブミンは 2.0 g/dL。補正AGは？',gamble:true,ch:[['18（補正は不要）',0,'アルブミンは「見えない陰イオン」の主役。減れば AG も見かけ上小さくなる。'],['23',1],['13',0,'補正すると AG は大きくなる方向。']],hint:'補正AG = AG + 2.5 ×（4.0 − Alb）。',
+   ex:'補正AG = 18 + 2.5 ×（4.0 − 2.0）= <b>23</b>。AG開大が隠れていた。乳酸 6.0 mmol/L とも合う。重症小児は低アルブミン血症が多いので、補正を忘れずに。',card:'agcorr'},
+  {h:'STEP 5　酸素化',q:'FiO₂ 0.8 で PaO₂ 55。平均気道内圧（MAP）13 cmH₂O。OI と重症度は？',focus:['po2'],oxy:true,ch:[['OI 約 7 → 軽症〜中等症 PARDS',0],['OI 約 4 → PARDS ではない',0],['OI 約 19 → 重症 PARDS',1]],hint:'OI = MAP × FiO₂ × 100 ÷ PaO₂。',
+   ex:'OI = 13 × 0.8 × 100 ÷ 55 = <b>18.9</b>。PALICC-2 では侵襲的換気中の OI 16 以上を<b>重症</b>とする。P/F は 69。',card:'oi'}
+ ],
+ ventIntro:[['d','やることは2つ。①呼吸数で CO₂ を下げて <b>pH ≥ 7.20</b>（重症PARDSなので許容的高CO₂血症でOK）。②PEEP で肺を開いて <b>FiO₂ 0.6 以下</b>へ。'],['d','ただし<b>肺保護</b>が大前提。Vt ≤ 8 mL/kg（この肺なら6前後）、プラトー圧 ≤ 28。PEEP を上げすぎると静脈還流が減って血圧が下がる。重症PARDSで PEEP ≥ 10 なら SpO₂ 88〜92% も許容されるよ。']],
+ vent:{vd:3.0,tau:0.2,crs:0.4,h0:14,p0:45,po2_0:55,pOpen:6,pOver:13,bpBase:[74,38],init:{rr:24,vt:6,peep:8,fio2:0.80},controls:['rr','vt','peep','fio2'],
+   goals:r=>[['pH ≥ 7.20',r.ph>=7.195],['SpO₂ ≥ 88%',r.spo2>=88],['FiO₂ ≤ 0.60',r.s.fio2<=0.601],['プラトー圧 ≤ 28 cmH₂O',r.pplat<=28.05],['Vt ≤ 8 mL/kg',r.s.vt<=8],['血圧を保てる PEEP（≤ 13）',r.s.peep<=13]]},
+ ventDone:'見事！ 呼吸器でできるのは<b>時間稼ぎ</b>。乳酸アシドーシスの本当の治療は、輸液・抗菌薬・循環作動薬で組織灌流を戻すこと。原因が良くなれば HCO₃⁻ は戻り、呼吸器も下げられる。',
+ cardsEnd:['lung']
+},
+{id:'hv',no:7,ch:2,lv:'入門',title:'手がしびれる、息が苦しい',pt:'アオイさん',age:'13歳',wt:45,tag:['急性呼吸性アルカローシス','co2'],
+ vitals:{hr:118,rr:40,bp:'124/72',t:'36.7',spo2:100},
+ intro:[['n','13歳のアオイさん（45 kg）。部活の大会前夜、急に息苦しくなり、手と口のまわりがしびれてきたと救急外来へ。指先がこわばって開かない。'],['ns','先生、すごく速い呼吸です。SpO₂ は 100% あるんですけど……。'],['d','（電話）まずはガスを読んで。“過換気”と決めつける前に、ほかの病気が隠れていないか確かめるのが大事だよ。']],
+ gas:{label:'来院時',src:'動脈血',fio2:0.21,pco2:24,hco3:21,po2:105,na:140,k:3.6,cl:106,glu:98,lac:1.2,alb:4.2,ica:1.04},
+ steps:[
+  {h:'STEP 1　pH',q:'pH 7.56。これは？',focus:['ph'],ch:[['アシデミア',0],['正常範囲',0],['アルカレミア',1]],hint:'7.45 より高い。',ex:'アルカレミア。天秤は右（アルカリ性側）に大きく傾いている。'},
+  {h:'STEP 2　一次性変化',q:'アルカリ性にしているのは？',focus:['pco2','hco3'],ch:[['代謝：HCO₃⁻ 21 → 代謝性',0,'HCO₃⁻ 21 は少し低い。HCO₃⁻ が下がるのは酸性方向だよ。'],['肺：PaCO₂ 24 が低い → 呼吸性',1]],hint:'CO₂ を吐きすぎると、天秤の左が軽くなる。',
+   ex:'PaCO₂ 24。速い呼吸で CO₂ を吐きすぎた<b>呼吸性アルカローシス</b>。'},
+  {h:'STEP 3　代償',q:'急性？ 慢性？',focus:['hco3'],reveal:['ralkA','ralkC'],expect:[{p:24,h:20.8,l:'急性の予測'},{p:24,h:16,l:'慢性の予測'}],
+   ch:[['急性呼吸性アルカローシス',1],['慢性呼吸性アルカローシス',0],['代謝性アシドーシスの合併',0]],hint:'急性なら PaCO₂ 10 低下ごとに HCO₃⁻ −2、慢性なら −4〜5。',
+   ex:'急性：24 − 2 × (40−24)/10 = <b>20.8</b>、慢性：24 − 5 × 1.6 = <b>16</b>。実測 21 で<b>急性</b>。数時間の出来事だね。',card:'ralk'},
+  {h:'STEP 4　A-aDO₂',q:'肺の病気（肺塞栓・肺炎・喘息）が隠れていないか、A-aDO₂ で確かめよう。室内気で PaO₂ 105。',focus:['po2','pco2'],oxy:true,ch:[['約 15 → 正常。肺そのものの問題は考えにくい',1],['約 45 → 開大。肺塞栓や肺炎を疑う',0,'計算をもう一度。PAO₂ = 0.21 × 713 − PaCO₂ ÷ 0.8。'],['約 0 → 計算できない',0,'室内気でも計算できるよ。']],hint:'PAO₂ = 0.21 × 713 − 24 ÷ 0.8 ≈ 120。A-aDO₂ = PAO₂ − PaO₂。',
+   ex:'PAO₂ = 149.7 − 30 = <b>約 120</b>、A-aDO₂ = 120 − 105 = <b>約 15</b>。正常範囲。AG も 140 −（106 + 21）= 13 で正常、血糖も正常。DKA のクスマウル呼吸や肺の病気による過換気ではなさそうだ。',card:'aado2'},
+  {h:'STEP 5　しびれの理由',q:'iCa 1.04 と低め。手のしびれ・こわばりの理由は？',focus:['ica','ph'],ch:[['アルカレミアでアルブミンに結合する Ca が増え、イオン化 Ca が下がった',1],['低K血症による筋力低下',0,'K 3.6 は正常範囲。'],['低血糖によるけいれん',0,'血糖 98 で正常。']],
+   ex:'pH が上がるとアルブミンのマイナス電荷が増え、Ca²⁺ がくっつく。体の Ca の総量は変わらないのに、働けるイオン化 Ca が減って<b>テタニー</b>（助産師の手）が起きる。呼吸が落ち着けば元に戻るよ。',card:'ica'}
+ ],
+ treat:{q:'アオイさんへの対応は？',ch:[
+   ['紙袋を口に当てて、吐いた息を吸わせる',0,'ペーパーバッグ法は低酸素の危険があり、ほかの病気を見逃すこともあるので勧められない。'],
+   ['原因（不安や痛み）を聞き、安心させて、ゆっくりした呼吸を一緒に行う',1],
+   ['カルシウム製剤を静注する',0,'体の Ca は足りている。呼吸が落ち着けばイオン化 Ca は自然に戻る。'],
+   ['すぐに鎮静薬を静注して眠らせる',0,'まずは声かけと環境調整。薬は最後の手段。']],
+   result:{label:'30分後',src:'動脈血',fio2:0.21,pco2:36,hco3:23.2,po2:96,na:140,k:3.8,cl:105,glu:96,lac:1.0,alb:4.2,ica:1.18},vitals:{hr:88,rr:18,bp:'112/66',spo2:99},
+   ex:'PaCO₂ 36、iCa 1.18 に戻り、手のしびれも消えた。過換気症候群は<b>除外診断</b>。DKA、喘息、肺塞栓、サリチル酸中毒、敗血症の初期などを先に否定してから考えよう。'},
+ cardsEnd:[]
+},
+{id:'co',no:8,ch:2,lv:'基本',title:'火事のあとの頭痛',pt:'ショウくん',age:'4歳',wt:16,tag:['乳酸アシドーシスとSpO₂の罠','acid'],
+ vitals:{hr:142,rr:30,bp:'102/60',t:'37.0',spo2:99},
+ intro:[['n','4歳のショウくん（16 kg）。自宅の火事で煙の中から救助された。やけどはないが、頭が痛いと泣き、うとうとしている。リザーバーマスクで酸素 10 L/分。'],['ns','SpO₂ 99% で落ち着いてます。顔のすすを拭いたら、帰れそうですね。'],['d','（電話）煙を吸った子は要注意。CO-オキシメトリー付きでガスを採って、ちゃんと読んでね。']],
+ gas:{label:'来院時',src:'動脈血',fio2:1.0,pco2:32,hco3:16,po2:380,na:138,k:3.8,cl:106,glu:130,lac:4.2,alb:4.0,cohb:22,methb:0.8},
+ steps:[
+  {h:'STEP 1　pH',q:'pH 7.32 は？',focus:['ph'],ch:[['アシデミア',1],['正常範囲',0],['アルカレミア',0]],hint:'7.35 未満。',ex:'アシデミア。SpO₂ 99% で元気そうに見えても、体の中では何かが起きている。'},
+  {h:'STEP 2　一次性変化と代償',q:'HCO₃⁻ 16、PaCO₂ 32。どう読む？',focus:['pco2','hco3'],reveal:['macid'],expect:[{p:32,h:16,l:'Winter 予測 30〜34',range:[30,34]}],
+   ch:[['代謝性アシドーシス＋適切な呼吸性代償',1],['呼吸性アシドーシス',0,'PaCO₂ 32 は低い。酸性の原因にはならない。'],['代謝性アシドーシス＋呼吸性アシドーシスの合併',0,'Winter の式で予測範囲を計算してみよう。']],hint:'Winter：1.5 × HCO₃⁻ + 8 ± 2。',
+   ex:'HCO₃⁻ 16 → <b>代謝性アシドーシス</b>。1.5 × 16 + 8 = <b>32 ± 2</b> で、呼吸性代償は適切。',card:'winter'},
+  {h:'STEP 3　アニオンギャップ',q:'Na 138、Cl 106、HCO₃⁻ 16。AG は？',gamble:true,ch:[['12 → 正常',0],['16 → 開大。乳酸 4.2 とほぼ合う',1],['26 → 大きく開大',0]],hint:'AG = Na⁺ −（Cl⁻ + HCO₃⁻）。',
+   ex:'138 −（106 + 16）= <b>16</b>。増えた分（約4）は乳酸 4.2 とほぼ一致。<b>乳酸アシドーシス</b>だ。',card:'ag'},
+  {h:'STEP 4　酸素',q:'SpO₂ 99%、PaO₂ 380 なのに乳酸が上がっている。なぜ？',focus:['cohb','po2'],ch:[['COHb 22%：Hb に CO が結合し、組織に酸素を運べていない',1],['採血の誤り。再検する',0,'臨床経過（煙の吸入・頭痛・眠気）と合っている。'],['過換気で乳酸が上がった',0,'PaCO₂ 32 は代償の範囲。乳酸の原因にはならない。']],
+   ex:'一般的なパルスオキシメータは <b>COHb を酸素化Hbと区別できない</b>ので 99% と表示する。PaO₂ は血漿に溶けた酸素で、Hb が運ぶ酸素の量（酸素含量）は表さない。CO-オキシメトリーでは本当の酸素飽和度は <b>約 77%</b>。組織は酸欠で乳酸を作っていた。',card:'cohb'}
+ ],
+ treat:{q:'ショウくんへの治療は？',ch:[
+   ['SpO₂ 99% なので酸素を止めて帰宅',0,'SpO₂ は COHb を見抜けない。酸素を止めると CO が抜けにくくなる。'],
+   ['100% 酸素を続け、COHb と神経症状を追う。高気圧酸素療法の適応を検討する',1],
+   ['炭酸水素ナトリウムで pH を補正する',0,'乳酸アシドーシスの治療は原因（酸素運搬）を戻すこと。']],
+   result:{label:'酸素4時間後',src:'動脈血',fio2:0.5,pco2:37,hco3:22.5,po2:210,na:138,k:3.9,cl:104,glu:104,lac:1.5,alb:4.0,cohb:3,methb:0.6},vitals:{hr:112,rr:24,bp:'100/58',spo2:99},
+   ex:'COHb 3%、乳酸 1.5 に改善し、頭痛も消えた。CO の半減期は室内気で約4〜6時間、100% 酸素で約1時間に短くなる。意識障害・神経症状・COHb 高値（目安 25% 以上）などでは高気圧酸素療法を検討（施設の基準を確認）。火災では<b>シアン化物中毒</b>も起こり、乳酸が著しく高いときは疑おう。'},
+ cardsEnd:[]
+},
+{id:'nh3',no:9,ch:2,lv:'応用',title:'眠ってばかりの赤ちゃん',pt:'レンくん',age:'生後3日',wt:3.0,tag:['呼吸性アルカローシス＋意識障害','co2'],
+ vitals:{hr:156,rr:72,bp:'64/38',t:'36.8',spo2:98},
+ intro:[['n','生後3日のレンくん（3.0 kg）。産院で昨日から哺乳が弱くなり、今日はほとんど眠ったまま。呼吸がとても速いと搬送されてきた。'],['ns','敗血症ですかね……。培養と抗菌薬、準備します。'],['d','（電話）培養と抗菌薬は大事。でも、ガスもちゃんと見て。新生児の“いつもと違う”ガスには理由があるよ。']],
+ gas:{label:'来院時',src:'動脈血',fio2:0.21,pco2:24,hco3:20.5,po2:88,na:137,k:4.6,cl:104,glu:82,lac:2.2,alb:3.5},
+ steps:[
+  {h:'STEP 1　pH',q:'pH 7.55 は？',focus:['ph'],ch:[['アシデミア',0],['アルカレミア',1],['正常範囲',0]],hint:'7.45 より高い。',ex:'アルカレミア。'},
+  {h:'STEP 2　一次性変化',q:'原因は？',focus:['pco2','hco3'],ch:[['肺：PaCO₂ 24 → 呼吸性',1],['代謝：HCO₃⁻ 20.5 → 代謝性',0,'HCO₃⁻ が下がるのは酸性方向。']],ex:'<b>呼吸性アルカローシス</b>。呼吸数 72 で CO₂ を吐きすぎている。'},
+  {h:'STEP 3　代償',q:'急性？ 慢性？',focus:['hco3'],reveal:['ralkA','ralkC'],expect:[{p:24,h:20.8,l:'急性の予測'},{p:24,h:16,l:'慢性の予測'}],
+   ch:[['急性呼吸性アルカローシス',1],['慢性呼吸性アルカローシス',0],['代謝性アシドーシスの合併',0]],hint:'急性なら PaCO₂ 10 低下ごとに HCO₃⁻ −2。',
+   ex:'予測 20.8 に対して実測 20.5。<b>急性</b>。乳酸も AG（137 − 124.5 = 12.5）も正常で、代謝性アシドーシスはない。',card:'ralk'},
+  {h:'STEP 4　次の検査',q:'意識が悪い新生児の、代謝性アシドーシスのない呼吸性アルカローシス。次に必ず測るのは？',ch:[['CRP と血液培養だけで十分',0,'感染症も考えて培養は採る。でもそれだけでは足りない。'],['血中アンモニア',1],['頭部CT',0,'まずは採血ですぐわかる原因を確かめよう。']],
+   ex:'脳に入ったアンモニアは<b>呼吸中枢を刺激して過換気</b>を起こす。重い感染症の新生児は循環不全で代謝性アシドーシスになりやすいから、“意識障害＋代謝性アシドーシスのない呼吸性アルカローシス”は<b>尿素サイクル異常症</b>のサイン。',card:'nh3'}
+ ],
+ treat:{q:'血中アンモニア 680 µg/dL（基準 100 前後未満）。最初の対応は？',ch:[
+   ['哺乳を続けて、明日もう一度測る',0,'ミルクの蛋白がアンモニアの材料になる。高アンモニアは時間との勝負。'],
+   ['蛋白を止め、高濃度ブドウ糖輸液で異化を止め、アンモニア除去薬を開始。血液浄化を準備して専門施設と連携する',1],
+   ['炭酸水素ナトリウムを投与する',0,'すでにアルカレミア。アシドーシスの治療ではない。']],
+   result:{label:'血液浄化12時間後',src:'動脈血',fio2:0.21,pco2:37,hco3:23.5,po2:84,na:138,k:4.2,cl:105,glu:118,lac:1.4,alb:3.5},vitals:{hr:142,rr:44,bp:'68/40',spo2:98},
+   ex:'アンモニアは 120 µg/dL まで下がり、呼吸も落ち着いた。アミノ酸分析でシトルリン低値、尿オロト酸高値から <b>OTC 欠損症</b>と診断。新生児の高アンモニア血症は、数値が高いほど・長いほど脳へのダメージが大きい。<b>迷ったら測る</b>が鉄則。'},
+ cardsEnd:[]
+},
+{id:'rta',no:10,ch:2,lv:'応用',title:'大きくならない理由',pt:'ヒナちゃん',age:'1歳6か月',wt:8.5,tag:['正AG性アシドーシス（腎臓）','acid'],
+ vitals:{hr:122,rr:32,bp:'90/52',t:'36.6'},
+ intro:[['n','1歳6か月のヒナちゃん（8.5 kg）。体重が増えないため精査入院中。夜の採血の結果が出た。'],['ns','先生、K が 2.9 です。下痢はなくて、おしっこはたくさん出てます。'],['d','（電話）胃腸炎の子と同じタイプのガスに見えるかも。でも原因は別の場所にあるかもしれないよ。']],
+ gas:{label:'夜の採血',src:'動脈血',fio2:0.21,pco2:29,hco3:14,po2:92,na:140,k:2.9,cl:114,glu:90,lac:1.0,alb:4.0},
+ steps:[
+  {h:'STEP 1　pH',q:'pH 7.31 は？',focus:['ph'],ch:[['アシデミア',1],['正常範囲',0],['アルカレミア',0]],ex:'アシデミア。'},
+  {h:'STEP 2　一次性変化と代償',q:'HCO₃⁻ 14、PaCO₂ 29。どう読む？',focus:['pco2','hco3'],reveal:['macid'],expect:[{p:29,h:14,l:'Winter 予測 27〜31',range:[27,31]}],
+   ch:[['代謝性アシドーシス＋適切な呼吸性代償',1],['呼吸性アルカローシス',0,'pH は酸性。'],['代謝性アシドーシス＋呼吸性アシドーシス',0,'1.5 × 14 + 8 を計算してみよう。']],
+   ex:'1.5 × 14 + 8 = <b>29 ± 2</b>。適切な代償のある<b>代謝性アシドーシス</b>。',card:'winter'},
+  {h:'STEP 3　アニオンギャップ',q:'Na 140、Cl 114、HCO₃⁻ 14。AG は？',gamble:true,ch:[['12 → 正AG（高Cl性）',1],['20 → 開大',0],['26 → 開大',0]],hint:'AG = Na⁺ −（Cl⁻ + HCO₃⁻）。',
+   ex:'140 −（114 + 14）= <b>12</b>。正AG。胃腸炎のソラちゃんと同じ形だね。でも、下痢はない。',card:'ag'},
+  {h:'STEP 4　尿AG',q:'尿 pH 7.0、尿 Na 40・K 35・Cl 55（mEq/L）。尿AGと解釈は？',ch:[['+20 → 腎臓から酸（NH₄⁺）を出せていない',1],['−20 → 酸は出せている。腸から HCO₃⁻ を失っている',0,'尿AG = 尿Na + 尿K − 尿Cl。符号に注意。'],['0 → 判断できない',0]],hint:'尿AG = 尿Na⁺ + 尿K⁺ − 尿Cl⁻。',
+   ex:'40 + 35 − 55 = <b>+20</b>。NH₄⁺（酸）を尿に出せていないサイン。アシデミアなのに尿 pH 7.0 と酸性尿が作れず、低K血症もある。<b>遠位尿細管性アシドーシス（遠位RTA）</b>だ。体重が増えないのも、慢性のアシドーシスのせい。',card:'uag'}
+ ],
+ treat:{q:'遠位RTA と診断。治療は？',ch:[
+   ['アルカリ（クエン酸K製剤など）の内服を始め、K も補う',1],
+   ['重曹は使わないのが原則なので、経過観察',0,'DKA で重曹を控えるのは、原因を止めれば体が自分で HCO₃⁻ を戻せるから。遠位RTA は腎臓が酸を捨てられないので、アルカリの補充が治療そのもの。'],
+   ['K はあとにして、重曹を急速静注する',0,'アルカリで K が細胞の中へ移り、低K血症が悪化して筋力低下や不整脈を起こす。']],
+   result:{label:'治療2週間後',src:'動脈血',fio2:0.21,pco2:37,hco3:22,po2:94,na:139,k:3.9,cl:106,glu:92,lac:0.9,alb:4.1},vitals:{hr:116,rr:28,bp:'92/54'},
+   ex:'pH 7.40、K 3.9。体重も少しずつ増え始めた。遠位RTA では腎石灰化や難聴の合併がないかも確認しよう。<b>同じ正AG性アシドーシスでも、原因で治療は正反対</b>になる。'},
+ cardsEnd:['alkali']
+},
+{id:'tbi',no:11,ch:2,lv:'応用',title:'脳を守る呼吸',pt:'ソウタくん',age:'8歳',wt:25,tag:['過換気と脳血流','co2'],
+ vitals:{hr:96,rr:30,bp:'118/70',t:'36.4'},
+ intro:[['n','8歳のソウタくん（25 kg）。帰省先から帰る途中の交通事故で頭部を強く打った。GCS 7 で前医で挿管され、救急車でバッグ換気されながら到着した。'],['ns','CTは急性硬膜下血腫で、脳外科が手術の準備中です。呼吸器につなぎました。前医の設定のままで RR 30、Vt 9 mL/kg です。'],['d','（電話）すぐ向かう。それまで、ガスを見て呼吸器を合わせておいて。頭の子の CO₂ はとても大事だよ。']],
+ gas:{label:'到着時',src:'動脈血',fio2:0.40,pco2:26,hco3:22,po2:200,na:141,k:3.5,cl:107,glu:168,lac:1.8,alb:4.0},
+ steps:[
+  {h:'STEP 1　pH',q:'pH 7.55 は？',focus:['ph'],ch:[['アルカレミア',1],['アシデミア',0],['正常範囲',0]],ex:'アルカレミア。'},
+  {h:'STEP 2　一次性変化と代償',q:'PaCO₂ 26、HCO₃⁻ 22。どう読む？',focus:['pco2','hco3'],reveal:['ralkA','ralkC'],expect:[{p:26,h:21.2,l:'急性の予測'},{p:26,h:17,l:'慢性の予測'}],
+   ch:[['急性呼吸性アルカローシス',1],['慢性呼吸性アルカローシス',0],['代謝性アルカローシス',0,'HCO₃⁻ は上がっていない。']],
+   ex:'急性の予測 24 − 2 × 1.4 = 21.2 に近い。バッグで速く押されていた<b>急性呼吸性アルカローシス</b>だね。',card:'ralk'},
+  {h:'STEP 3　脳への影響',q:'PaCO₂ 26。頭部外傷の子の脳では何が起きる？',focus:['pco2'],ch:[['脳の血管が縮んで脳血流が減る → 脳虚血の危険',1],['脳の血管が広がって頭蓋内圧が上がる',0,'それは PaCO₂ が高いとき。'],['脳には影響しない',0,'CO₂ は脳の血管を動かす最も強い因子のひとつ。']],
+   ex:'PaCO₂ が 1 mmHg 下がるごとに脳血流は約 2〜4% 減る（目安）。頭蓋内圧は下がるけれど、傷ついた脳には<b>虚血</b>が致命的。重症頭部外傷では予防的な過換気（PaCO₂ 30 未満）は避け、<b>PaCO₂ 35〜40</b> を目安にする。強い過換気は脳ヘルニアの徴候があるときの一時しのぎだけ。',card:'paco2brain'}
+ ],
+ ventIntro:[['d','（電話）目標は <b>PaCO₂ 35〜40</b>。下げすぎも上げすぎもだめ。低酸素も脳の敵だから <b>SpO₂ 94% 以上</b>。'],['d','肺は正常だから Vt は 6〜8 mL/kg で十分。前医の Vt 9 は大きすぎるね。点線の予測円を見ながら、呼吸数と Vt で CO₂ を合わせよう。']],
+ vent:{vd:2.2,tau:0.3,crs:1.0,h0:22,p0:26,gFixed:0.75,init:{rr:30,vt:9,peep:5,fio2:0.40},controls:['rr','vt','fio2'],
+   goals:r=>[['PaCO₂ 35〜40 mmHg',r.pco2>=34.95&&r.pco2<=40.05],['SpO₂ ≥ 94%',r.spo2>=94],['Vt ≤ 8 mL/kg',r.s.vt<=8],['プラトー圧 ≤ 28 cmH₂O',r.pplat<=28.05]],
+   tip:(r,s)=>r.pco2<34.95?'まだ過換気。呼吸数か Vt を少し下げよう。CO₂ が低いほど脳の血管は縮む。':r.pco2>40.05?'今度は換気が足りない。CO₂ が増えると脳の血管が広がって頭蓋内圧が上がる。':''},
+ ventDone:'脳を守る換気は「ちょうどいい CO₂」。あわせて、ベッドの頭を 30° 上げて首をまっすぐに保つこと、低酸素と低血圧を避けることもセットで覚えておこう。',
+ cardsEnd:[]
+},
+{id:'bpd',no:12,ch:2,lv:'挑戦',title:'その子の“いつもの値”',pt:'メイちゃん',age:'生後8か月',wt:6,tag:['慢性呼吸性アシドーシス＋代謝性アルカローシス','base'],
+ vitals:{hr:164,rr:40,bp:'86/48',t:'38.2'},
+ intro:[['n','生後8か月のメイちゃん（6.0 kg）。在胎25週で生まれ、<b>気管支肺異形成（BPD）</b>で在宅酸素とフロセミドを使っている。RSウイルス感染で悪化し、地域の病院で挿管されて搬送されてきた。'],['ns','前医の設定は RR 40、Vt 7 mL/kg、PEEP 6、FiO₂ 0.5 です。お母さんが、ふだんの検査の紙を持ってきてくれました。'],['d','今夜の最後の山場。一緒にいこう。']],
+ gas:{label:'到着時',src:'動脈血',fio2:0.50,pco2:78,hco3:38,po2:58,na:134,k:3.2,cl:86,glu:102,lac:1.3,alb:3.6},
+ steps:[
+  {h:'STEP 1　pH',q:'pH 7.31 は？',focus:['ph'],ch:[['アシデミア',1],['正常範囲',0],['アルカレミア',0]],ex:'アシデミア。でも PaCO₂ 78 にしては、pH の下がり方が小さいと思わない？'},
+  {h:'STEP 2　一次性変化',q:'原因は？',focus:['pco2','hco3'],ch:[['肺：PaCO₂ 78 → 呼吸性',1],['代謝：HCO₃⁻ 38 → 代謝性',0,'HCO₃⁻ が高いのはアルカリ方向。pH を下げているのは？']],ex:'<b>呼吸性アシドーシス</b>。'},
+  {h:'STEP 3　代償',q:'急性？ 慢性？',focus:['hco3'],reveal:['racA','racC'],expect:[{p:78,h:27.8,l:'急性の予測'},{p:78,h:37.3,l:'慢性の予測'}],
+   ch:[['急性呼吸性アシドーシス',0,'急性なら HCO₃⁻ は 28 くらいまでしか上がらない。'],['慢性呼吸性アシドーシス',1],['代謝性アシドーシスの合併',0]],hint:'急性 +1、慢性 +3.5（PaCO₂ 10 上昇あたり）。',
+   ex:'急性：24 + 3.8 = 27.8、慢性：24 + 3.5 × 3.8 = 37.3。実測 38 で<b>慢性</b>。腎臓が何か月もかけて HCO₃⁻ を貯めてきたから、pH があまり下がらない。',card:'racomp'},
+  {h:'STEP 4　ふだんの値',q:'安定期のガスは PaCO₂ 60・HCO₃⁻ 36。フロセミド内服中で、今日は Cl 86・K 3.2。ふだんの値をどう読む？',focus:['cl','k'],ch:[['慢性呼吸性アシドーシスだけ',0,'慢性の予測は 24 + 3.5 × 2 = 31。36 は高すぎる。'],['慢性呼吸性アシドーシス＋代謝性アルカローシス（利尿薬）',1],['代謝性アシドーシスの合併',0]],
+   ex:'PaCO₂ 60 なら慢性の予測 HCO₃⁻ は <b>31</b>。36 はそれを超える＝<b>代謝性アルカローシスの合併</b>。フロセミドで Cl⁻ と K⁺ を失い、腎臓が HCO₃⁻ を捨てられなくなっている。',card:'mixed'},
+  {h:'STEP 5　目標',q:'呼吸器で目指す PaCO₂ は？',focus:['pco2'],ch:[['40（正常値）まで下げる',0,'HCO₃⁻ 38 は数日下がらない。PaCO₂ 40 なら pH は約 7.55 の強いアルカレミアになる。'],['ふだんに近い 55〜65',1],['80 以上でもかまわない',0,'それではアシデミアが進む。']],
+   ex:'PaCO₂ を 40 にすると HCO₃⁻ は約 34、pH は<b>約 7.55</b>。これが <b>post-hypercapnic alkalosis</b>。けいれんや不整脈、低K血症の悪化を招く。目標は数値の正常化ではなく、<b>その子のいつもの値</b>。',card:'posthyper'}
+ ],
+ ventIntro:[['d','BPD の肺は、場所によって膨らみやすさも空気の抜けやすさもバラバラ。<b>息を吐くのに時間がかかる</b>から、呼吸数を上げすぎないで。前医の RR 40 だと吐ききれていないね。'],['d','こういう子は Vt をやや大きめ、呼吸数を少なめにしたほうが換気しやすいことが多い。目標は <b>PaCO₂ 55〜65、pH 7.30〜7.45、SpO₂ 92% 以上</b>。PEEP も使って酸素化を助けよう。']],
+ vent:{vd:3.0,tau:0.45,crs:0.6,h0:38,p0:78,po2_0:58,pOpen:4,pOver:10,init:{rr:40,vt:7,peep:6,fio2:0.50},controls:['rr','vt','peep','fio2'],alarmPH:7.25,
+   goals:r=>[['PaCO₂ 55〜65 mmHg（ふだんの値へ）',r.pco2>=54.95&&r.pco2<=65.05],['pH 7.30〜7.45',r.ph>=7.295&&r.ph<=7.455],['エアトラッピングなし（呼気時間 ≥ 3τ）',r.te>=3*r.c.tau-0.005],['SpO₂ ≥ 92%',r.spo2>=92],['プラトー圧 ≤ 28 cmH₂O',r.pplat<=28.05],['Vt ≤ 10 mL/kg',r.s.vt<=10]],
+   tip:(r,s)=>r.ph>7.455?'アルカレミア！ HCO₃⁻ 38 は呼吸器では下がらない。PaCO₂ をふだんの値まで戻そう。':r.pco2<54.95?'PaCO₂ を下げすぎ。ふだんの 55〜65 を目指そう。':r.pco2>65.05&&r.te>=3*0.45?'まだ CO₂ が多い。呼気時間を保ったまま Vt を増やすか、呼吸数を少しだけ上げよう。':r.spo2<92?'酸素化が足りない。PEEP を少し上げるか FiO₂ を上げよう。':''},
+ ventDone:'できた！ 慢性の高 CO₂ の子には、腎臓がバランスをとった“その子の正常”がある。PaCO₂ を 40 に合わせ続けると数日で HCO₃⁻ も減り、抜管後に自分の呼吸で同じ換気を続けられず再挿管になることもある。利尿薬による低 Cl・低 K も補正していこう。',
+ cardsEnd:['vapaco2','airtrap']
+}
+];
+
+/* ========== 章 ========== */
+const CHAPTERS=[
+ {id:1,title:'はじめての当直',kicker:'第1章',sub:'朝8時から翌朝まで',desc:'研修医のあなたは、今日からPICUローテーション。しかも初日から当直だ。いぶき先生と6人の子どもたちを支えよう。',cg:'cg_prologue',pro:'prologue',epi:'epilogue'},
+ {id:2,title:'ひとりで立つ夜',kicker:'第2章',sub:'3か月後・夕方6時から翌朝まで',desc:'研修の後半、はじめての“当直の一番手”。いぶき先生は家からのオンコール。数字の裏側に隠れた答えを、自分の力で読み解こう。',cg:'cg_prologue2',pro:'prologue2',epi:'epilogue2'}];
+const chOf=c=>CHAPTERS.find(h=>h.id===(c.ch||1));
+const chCases=h=>CASES.filter(c=>(c.ch||1)===h.id);
+const chDone=h=>chCases(h).every(c=>PROG.cases[c.id]);
+const MAXS=()=>CASES.length*3;
+
+/* ========== ストーリー「はじめての当直」 ========== */
+const STORY={
+ prologue:{bgm:'morning',jingle:'chapter',chap:{time:'08:00',place:'PICU 前の廊下',title:'プロローグ　はじめての当直'},cg:'cg_prologue',lines:[
+  ['n','今日から小児集中治療室（PICU）のローテーション。しかも初日から、そのまま当直だ。'],
+  ['d','おはよう！ 今日から一緒に働く研修医さんね。指導医のいぶきです。よろしく！'],
+  ['m','ぼくはぷくぷく！ みんなの“吐く息”の妖精だよ。CO₂のことなら任せて！'],
+  ['ns','看護師のミナミです。今日は朝から翌朝まで、長〜い一日になりますよ。'],
+  ['d','PICUでは一日に何十回も血液ガスを見るの。ガスはね、<b>体からの手紙</b>なんだ。'],
+  ['d','毎回同じ順番で読めば、必ず答えてくれる。<b>pH → 一次性変化 → 代償 → AG → 酸素化</b>。この5つを覚えておいて。'],
+  ['d','今日の当直が終わるころには、あなたも読めるようになってるはず。さ、最初の患者さんに会いに行こう。']]},
+ bronch:{open:{chap:{time:'09:10',place:'PICU',title:'症例1　夜中に止まった呼吸'},cg:'cg_bronch',lines:[
+   ['n','ベッドの横で、ハルくんのママが小さな手を握っている。昨夜、無呼吸発作をくり返して挿管された生後3か月の赤ちゃんだ。'],
+   ['ハルくんのママ','夜中に急に息が止まって……。この子、またちゃんと息ができるようになりますか？'],
+   ['d','今は機械がハルくんの呼吸を手伝っています。血液ガスを見ながら、ハルくんにちょうどいい呼吸を探していきますね。'],
+   ['d','（小声で）研修医さん、最初のガスを一緒に読もう。読み方の基本が全部つまってるよ。']]},
+  close:{bgm:'breath',cg:'cg_bronch',lines:[
+   ['ハルくんのママ','顔色が……ピンクに戻ってきた。'],
+   ['d','CO₂がうまく吐けるようになったからですよ。この調子なら数日でチューブを抜けると思います。'],
+   ['n','3日後、ハルくんは抜管された。ママの腕の中で、久しぶりに大きな声で泣いた。']]}},
+ gastro:{open:{chap:{time:'11:40',place:'救急外来',title:'症例2　おしっこが出ない'},cg:'cg_gastro',lines:[
+   ['ns','先生、救急外来から呼ばれてます！ 1歳の女の子、下痢でぐったりしてるそうです。'],
+   ['ソラちゃんのママ','3日前から下痢が止まらなくて……今朝から一度もおしっこが出てないんです。'],
+   ['d','ソラちゃん、ちょっと診せてね。……手足が冷たい、目もくぼんでる。ミナミさん、点滴お願い！'],
+   ['ns','はい！ ついでに血液ガスも採りますね。'],
+   ['d','研修医さん、呼吸が速いの、わかる？ 肺炎かな？ ……答えはガスが教えてくれるよ。']]},
+  close:{bgm:'breath',cg:'cg_gastro',lines:[
+   ['n','輸液が入るにつれて、ソラちゃんの頬に赤みが戻ってきた。夕方には経口補水液を自分のコップで飲んでいる。'],
+   ['ソラちゃんのママ','あんなに速かった呼吸が、ゆっくりになりました。'],
+   ['d','速い呼吸は、酸を吐き出してがんばっていた証拠だったんです。ソラちゃん、えらかったね。']]}},
+ hps:{open:{chap:{time:'14:20',place:'小児病棟',title:'症例3　手術を急ぐ前に'},cg:'cg_hps',lines:[
+   ['n','生後5週のユウトくん。哺乳のたびに噴水のように吐いてしまう。エコーで幽門筋の肥厚が見つかった。'],
+   ['ユウトくんのパパ','早く手術してもらえれば、吐かなくなるんですよね？'],
+   ['外科医','今日の夕方の枠、空いてますよ。すぐ入れましょう！'],
+   ['d','ちょっと待って！ 手術の前に、ガスを見せてください。'],
+   ['d','（研修医さんに）この病気は「外科の病気」だけど、まず「内科の緊急」なの。理由はガスに書いてあるよ。']]},
+  close:{bgm:'breath',cg:'cg_hps',lines:[
+   ['外科医','電解質が戻りましたね。これなら麻酔も安心です。明日の朝いちばんで入りましょう。'],
+   ['n','翌日、手術は30分で終わった。その日の夜、ユウトくんはミルクをごくごく飲んで、一度も吐かずに眠った。'],
+   ['ユウトくんのパパ','待ってよかったです。ありがとうございました。']]}},
+ asthma:{open:{chap:{time:'17:30',place:'救急外来',title:'症例4　静かになった、のに'},cg:'cg_asthma',lines:[
+   ['ns','喘息の6歳男児です！ 吸入しても良くならないって、救急車で来ます！'],
+   ['ケンタくん','く……くるしい……。'],
+   ['ケンタくんのママ','いつもの吸入で治るのに、今日は全然だめで……。'],
+   ['d','肩で息をしてる、大発作ね。酸素と吸入を続けて、ガスも採ろう。'],
+   ['d','研修医さん、この子は1時間後にもう一度ガスを採るよ。<b>2回目</b>の読み方が今回のテーマ。']]},
+  close:{bgm:'breath',cg:'cg_asthma',lines:[
+   ['ケンタくん','先生……息、らくになってきた。'],
+   ['ケンタくんのママ','静かになったとき、てっきり良くなったんだと思ってました……。'],
+   ['d','静かになったのは、疲れて息が弱くなっていたからなんです。気づけてよかった。'],
+   ['d','（研修医さんに）“正常に見える数字”にこそ注意。ガスは点じゃなくて、流れで読むの。']]}},
+ dka:{open:{chap:{time:'20:10',place:'救急外来',title:'症例5　深くて大きな呼吸'},cg:'cg_dka',lines:[
+   ['n','夜の救急外来。10歳のミオちゃんが、深く大きな呼吸をくり返している。'],
+   ['ミオちゃんのママ','最近すごく水を飲んで、夜中も何度もトイレに起きて……。やせたなとは思っていたんです。'],
+   ['d','血糖を測ろう。……520。ケトンも高い。糖尿病性ケトアシドーシスね。'],
+   ['d','研修医さん、このガスはしっかり覚えておいて。今夜、もう一度この数字に助けられることになるかもしれない。']]},
+  close:{bgm:'breath',cg:'cg_dka',lines:[
+   ['d','……間に合ってよかった。'],
+   ['d','実はね、わたしも研修医のとき、同じことをしかけたの。挿管した子を“いつもの設定”にして、指導医に止めてもらった。'],
+   ['d','あのときの指導医の言葉、今も覚えてる。「挿管したら、その子ががんばっていた呼吸を、機械が引き継ぐんだよ」って。だから今日、あなたに伝えたかった。'],
+   ['n','2日後、ミオちゃんは抜管された。今はママと一緒に、インスリン注射の練習をしている。']]}},
+ sepsis:{open:{chap:{time:'02:40',place:'PICU（深夜）',title:'症例6　夜明け前の山場'},cg:'cg_sepsis',lines:[
+   ['ns','先生！ リクくん、血圧が下がってきてます！ 酸素もどんどん上げてて……！'],
+   ['n','肺炎から敗血症性ショックになった2歳のリクくん。挿管されたばかりで、両方の肺が真っ白だ。'],
+   ['リクくんのパパ','リクは……リクは大丈夫なんですか。'],
+   ['d','今、全力で治療しています。（研修医さんに）今夜いちばんの山場よ。酸塩基も酸素化も、ぜんぶ使って読もう。']]},
+  close:{bgm:'breath',cg:'cg_sepsis',lines:[
+   ['ns','血圧、戻ってきました。SpO₂も90台で安定してます！'],
+   ['リクくんのパパ','ありがとうございます……ありがとうございます……。'],
+   ['d','今夜を越えられたら、きっと大丈夫。抗菌薬が効いてくるまで、呼吸器で時間をかせぎましょう。'],
+   ['n','窓の外が、少しずつ明るくなってきた。']]}},
+ epilogue:{bgm:'epilogue',chap:{time:'1か月後',place:'病院の玄関',title:'エピローグ　体からの手紙'},cg:'cg_epilogue',lines:[
+   ['n','1か月後。外来の帰りに、退院した子どもたちが顔を見せに来てくれた。'],
+   ['ns','ハルくんもソラちゃんも、ユウトくんも、すっかり元気ですね。ケンタくんは吸入の練習をがんばってるそうですよ。'],
+   ['ミオちゃん','先生！ インスリン、自分で打てるようになったよ！'],
+   ['n','リクくんはパパに抱っこされて、小さな手を振っている。'],
+   ['d','血液ガスはね、ただの数字の並びじゃない。その子の体が、必死にバランスをとろうとした記録なの。'],
+   ['d','あの夜、あなたはちゃんとその手紙を読めた。……おつかれさま、研修医さん。'],
+   ['m','きみはもう、<b>血液ガスマスター</b>だね！']]},
+ prologue2:{bgm:'memory',jingle:'chapter',chap:{time:'3か月後　18:00',place:'PICU ナースステーション',title:'第2章　ひとりで立つ夜'},cg:'cg_prologue2',lines:[
+  ['n','3か月後。研修の後半で、もう一度 PICU に戻ってきた。そして今夜は、はじめて“当直の一番手”をまかされた。'],
+  ['d','おかえり！ 今日はわたし、家からのオンコール。困ったら何時でも電話してね。'],
+  ['d','でもまずは、あなたがガスを読む。5つの順番、覚えてる？ <b>pH → 一次性変化 → 代償 → AG → 酸素化</b>。'],
+  ['ns','ひさしぶりです、先生。今夜はわたしもいるので、一緒にがんばりましょう。'],
+  ['m','ぼくもいるよ！ 今夜はちょっと“ひねった”手紙が届きそうな予感……。'],
+  ['d','数字がぜんぶ正常っぽく見えても、体のどこかで何かが起きていることもある。今夜は、そこを見抜く夜になるかもね。いってらっしゃい！']]},
+ hv:{open:{chap:{time:'19:20',place:'救急外来',title:'症例7　紙袋はいりません'},cg:'cg_hv',lines:[
+   ['アオイさんのママ','明日が部活の大会で……夕方から急に「息ができない」って。手もこんなふうに固まっちゃって。'],
+   ['アオイさん','はっ、はっ……くるしい……手が、しびれる……。'],
+   ['ns','先生、過換気ですよね？ 昔は紙袋をあてて……って教わりました。'],
+   ['m','まってまって！ その前に、ガスを読もうよ。']]},
+  close:{bgm:'breath',cg:'cg_hv',lines:[
+   ['アオイさん','……ゆっくり吸って、ゆっくり吐いたら、手が動くようになった。'],
+   ['ns','紙袋、使わなくてよかったんですね。勉強になりました。'],
+   ['d','（電話）ちゃんと肺と代謝の病気を除外してから“過換気”と言えたね。いいスタート！']]}},
+ co:{open:{chap:{time:'21:05',place:'救急外来',title:'症例8　99% のうそ'},cg:'cg_co',lines:[
+   ['n','サイレンの音。近所の火事で、煙の中から救助された親子が運ばれてきた。'],
+   ['ショウくんのパパ','僕は大丈夫です、息子を先に……！ さっきから頭が痛いって、うとうとしてて。'],
+   ['ns','SpO₂ 99% です。やけどもないし、よかった……。'],
+   ['m','うーん、ぼく、なんだかイヤな予感がする。煙の中には、目に見えない“にせものの酸素”がいるんだ。']]},
+  close:{bgm:'breath',cg:'cg_co',lines:[
+   ['ショウくん','パパ、あたま、いたくなくなった！'],
+   ['ショウくんのパパ','SpO₂ が 99% だったのに、危なかったなんて……。'],
+   ['d','（電話）モニターの数字は、ぜんぶを教えてくれるわけじゃない。ガスで見抜けたね。パパも念のためガスを採ってあげて。']]}},
+ nh3:{open:{chap:{time:'23:30',place:'PICU',title:'症例9　息が速すぎる'},cg:'cg_nh3',lines:[
+   ['n','産院から、生後3日の赤ちゃんが搬送されてきた。昨日から哺乳が弱く、今日はほとんど目を開けないという。'],
+   ['レンくんのママ','生まれたときは元気に泣いてたんです。おっぱいも飲めてたのに……。'],
+   ['ns','先生、すごく呼吸が速いです。72回。敗血症かもしれません。'],
+   ['d','（電話）抗菌薬はすぐ始めて。そのうえで、ガスの形をよく見て。“速い呼吸”が何を意味してるか。']]},
+  close:{bgm:'breath',cg:'cg_nh3',lines:[
+   ['ns','アンモニア、下がってきました。呼吸もゆっくりです。'],
+   ['レンくんのママ','この子、目を開けて、わたしの指をにぎりました……。'],
+   ['d','（電話）呼吸性アルカローシスからアンモニアにたどり着けたのは大きいよ。新生児の過換気は、肺だけを見ていたら見逃すの。']]}},
+ rta:{open:{chap:{time:'01:30',place:'小児病棟',title:'症例10　大きくならない理由'},cg:'cg_rta',lines:[
+   ['n','深夜の小児病棟。体重が増えないため精査入院中の、1歳6か月のヒナちゃん。お母さんはベッドの横の椅子で眠っている。'],
+   ['ns','先生、夜の採血でカリウムが低くて。ガスも出してあります。'],
+   ['ヒナちゃんのママ','（目をさまして）……よく食べてるのに、どうしてこの子は大きくならないんでしょう。'],
+   ['m','この手紙は、ソラちゃんのときと同じ形に見えるかも。でも差出人がちがうかもしれないよ。']]},
+  close:{bgm:'breath',cg:'cg_rta',lines:[
+   ['ヒナちゃんのママ','原因がわかって、ほっとしました。お薬、ちゃんと続けます。'],
+   ['n','2週間後、ヒナちゃんの体重曲線は、はじめて上を向いた。'],
+   ['d','（電話）尿の数字まで使って原因を突き止めたね。同じ形のガスでも、治療が正反対になることがあるの。']]}},
+ tbi:{open:{chap:{time:'03:10',place:'PICU',title:'症例11　脳を守る呼吸'},cg:'cg_tbi',lines:[
+   ['救急隊','8歳男児、交通事故による頭部外傷です！ 前医で挿管済み、搬送中はバッグで換気してきました！'],
+   ['ソウタくんのママ','ソウタ……ソウタ……！'],
+   ['ns','先生、脳外科は手術の準備中です。それまで呼吸器、お願いします！'],
+   ['d','（電話）すぐ向かう。着くまでに CO₂ を合わせておいて。頭の子では、CO₂ は薬と同じくらい効くからね。']]},
+  close:{bgm:'breath',cg:'cg_tbi',lines:[
+   ['n','緊急手術で血腫が取り除かれた。PaCO₂ は 35〜40 に保たれたまま、ソウタくんは朝を迎えた。'],
+   ['ソウタくんのママ','手術、間に合ったんですね……。'],
+   ['d','（駆けつけて）呼吸器の設定、ちょうどいいところに合ってた。下げすぎなかったのがえらい。']]}},
+ bpd:{open:{chap:{time:'05:00',place:'PICU（明け方）',title:'症例12　その子の“いつもの値”'},cg:'cg_bpd',lines:[
+   ['n','明け方。地域の病院から、挿管された赤ちゃんが搬送されてきた。いぶき先生は、ソウタくんの手術のあともそのまま病院に残っている。'],
+   ['メイちゃんのママ','この子、生まれたときは手のひらにのるくらい小さくて……。ずっと酸素を使ってるんです。'],
+   ['d','ふだんの検査の紙、ありがとうございます。とても大事な情報です。'],
+   ['d','（研修医さんに）今夜の最後は、“正常値に戻さない”ことが正解になる患者さん。慢性の子のガスを、一緒に読もう。']]},
+  close:{bgm:'breath',cg:'cg_bpd',lines:[
+   ['ns','PaCO₂ 60 前後で安定してます。pH も 7.4 くらい。メイちゃん、穏やかな顔してます。'],
+   ['メイちゃんのママ','ふだんの紙を持ってきて、よかった……。'],
+   ['d','その子の“いつもの値”を知っている家族は、チームの一員なんです。ありがとうございます。'],
+   ['n','窓の外が明るくなってきた。長い夜が終わる。']]}},
+ epilogue2:{bgm:'epilogue',chap:{time:'08:30',place:'PICU スタッフルーム',title:'エピローグ　ひとりで読めた手紙'},cg:'cg_epilogue2',lines:[
+   ['ns','先生、お疲れさまでした！ はい、コーヒー。'],
+   ['d','朝の申し送り、聞いてたよ。6人とも、あなたが最初に読んで、ちゃんと答えを出してた。'],
+   ['d','SpO₂ が 99% でも、pH が正常っぽくても、正常値に戻すのが正解じゃないときも。数字の“裏側”を読めるようになったね。'],
+   ['m','ぼくたちの手紙、ぜんぶ届いてたよ！'],
+   ['d','もう、ひとりで立てる。……でも困ったら、いつでも電話してね。それもチームの力だから。'],
+   ['m','きみは本物の<b>血液ガスマスター</b>だ！']]}
+};
+const VN_NAMES={d:'いぶき先生',ns:'看護師 ミナミ',m:'ぷくぷく',n:''};
+const VN_FACE={d:'icon_doctor',ns:'icon_nurse',m:'icon_mascot'};
+function vnClose(){const v=$('#vn');if(v)v.hidden=true;}
+async function playScene(t,sc){
+  if(!sc)return;chk(t);const v=$('#vn');v.hidden=false;if(sc.bgm)BGM.want(sc.bgm);if(sc.jingle)BGM.jingle(sc.jingle);
+  const cg=$('#vnCg');cg.style.backgroundImage=`url(${A(sc.cg)}),url(${A('bg_title')})`;
+  const ch=$('#vnChap');
+  if(sc.chap){ch.innerHTML=`<div class="tm">${sc.chap.time}　${sc.chap.place}</div><div class="tt">${sc.chap.title}</div>`;ch.hidden=false;ch.classList.remove('out');void ch.offsetWidth;await new Promise(r=>{const done=()=>{v.removeEventListener('click',done);r();};v.addEventListener('click',done);setTimeout(done,RM?0:1800);});chk(t);ch.classList.add('out');await sleep(RM?0:300);ch.hidden=true;}
+  let skip=false;const sk=$('#vnSkip');sk.onclick=e=>{e.stopPropagation();skip=true;v.dispatchEvent(new Event('click'));};
+  for(const [spk,txt] of sc.lines){
+    chk(t);if(skip)break;
+    const nm=VN_NAMES[spk]!=null?VN_NAMES[spk]:spk;
+    const face=VN_FACE[spk];
+    $('#vnName').innerHTML=nm?`${face?`<span class="vf"><img src="${A(face)}" alt="" onerror="this.parentNode.remove()"></span>`:''}${nm}`:'';$('#vnName').hidden=!nm;
+    const box=$('#vnText');box.classList.toggle('narr',spk==='n');
+    await new Promise(res=>{
+      let full=false;const plain=txt;box.innerHTML='';
+      const tmp=document.createElement('div');tmp.innerHTML=plain;const len=tmp.textContent.length;let i=0,timer=null;
+      const finish=()=>{full=true;clearInterval(timer);box.innerHTML=plain;};
+      if(RM)finish();else timer=setInterval(()=>{i+=2;if(i>=len){finish();return;}box.textContent=tmp.textContent.slice(0,i);},28);
+      const onClick=()=>{if(!full){finish();return;}v.removeEventListener('click',onClick);document.removeEventListener('keydown',onKey);res();};
+      const onKey=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();onClick();}};
+      v.addEventListener('click',onClick);document.addEventListener('keydown',onKey);
+      const guard=setInterval(()=>{if(t!==token||skip){clearInterval(guard);clearInterval(timer);v.removeEventListener('click',onClick);document.removeEventListener('keydown',onKey);res();}},200);
+    });
+  }
+  vnClose();chk(t);
+}
+
+/* ========== BGM（手技マスター共通の Suno 曲。小節の頭でループ済み） ========== */
+const BGM=(()=>{
+  const KEY='bgm-music-v1',FILES={title:3617874,day:4330165,night:3041544,alarm:1693495,breath:2529028,nicu:1957520,memory:2557079,epilogue:3512661,morning:1746120,urgent:1435953,dawn:2917042,notebook:3223111},RATE=44100;
+  const GAIN=0.32,FADE=2.5,DIP=0.35;
+  let on=true;try{on=localStorage.getItem(KEY)!=='off';}catch(e){}
+  let ctx=null,bus=null,mbus=null,wanted=null,playing=null,hidden=false;const cache={},jobs={},nodes={},jing={},bad={};
+  const okPage=()=>location.protocol!=='file:'&&!!window.fetch;
+  function context(){if(!ctx){const C=window.AudioContext||window.webkitAudioContext;if(!C)return null;ctx=new C();bus=ctx.createGain();bus.gain.value=GAIN;bus.connect(ctx.destination);mbus=ctx.createGain();mbus.connect(bus);ctx.addEventListener&&ctx.addEventListener('statechange',apply);}
+    if(ctx.state==='suspended')try{ctx.resume();}catch(e){}return ctx;}
+  function load(name,trim){return fetch('assets/bgm/bgm_'+name+'.mp3').then(r=>{if(!r.ok)throw 0;return r.arrayBuffer();}).then(a=>new Promise((res,rej)=>ctx.decodeAudioData(a,res,rej))).then(b=>{
+      if(trim){const n=Math.round(trim*b.sampleRate/RATE);if(b.length>n){const c=ctx.createBuffer(b.numberOfChannels,n,b.sampleRate);for(let k=0;k<b.numberOfChannels;k++)c.getChannelData(k).set(b.getChannelData(k).subarray(0,n));b=c;}}return b;});}
+  function fadeOut(tr){const n=nodes[tr];if(!n)return;delete nodes[tr];const t=ctx.currentTime;n.g.gain.cancelScheduledValues(t);n.g.gain.setValueAtTime(n.g.gain.value,t);n.g.gain.linearRampToValueAtTime(0,t+FADE);try{n.s.stop(t+FADE+.05);}catch(e){}}
+  function apply(){const target=on&&!hidden?wanted:null;if(target===playing)return;if(!ctx||ctx.state!=='running')return;
+    if(target&&!cache[target]){if(!jobs[target]&&!bad[target]&&okPage()){jobs[target]=1;load(target,FILES[target]).then(b=>{cache[target]=b;delete jobs[target];apply();}).catch(()=>{delete jobs[target];bad[target]=1;});}return;}
+    if(playing)fadeOut(playing);playing=target;if(!target)return;
+    const s=ctx.createBufferSource(),g=ctx.createGain(),t=ctx.currentTime;s.buffer=cache[target];s.loop=true;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(1,t+FADE);s.connect(g);g.connect(mbus);s.start(t);nodes[target]={s,g};}
+  function want(tr){wanted=FILES[tr]?tr:null;apply();}
+  function jingle(name){if(!on||hidden||!ctx||ctx.state!=='running'||!okPage())return;
+    const play=b=>{const s=ctx.createBufferSource(),t=ctx.currentTime;s.buffer=b;s.connect(bus);s.start(t);mbus.gain.cancelScheduledValues(t);mbus.gain.setValueAtTime(mbus.gain.value,t);mbus.gain.linearRampToValueAtTime(DIP,t+.15);mbus.gain.setValueAtTime(DIP,t+Math.max(.2,b.duration-.6));mbus.gain.linearRampToValueAtTime(1,t+b.duration+.4);};
+    if(jing[name]){if(jing[name]!=='loading')play(jing[name]);return;}jing[name]='loading';load('jingle_'+name).then(b=>{jing[name]=b;play(b);}).catch(()=>{delete jing[name];});}
+  function setOn(v){on=!!v;try{localStorage.setItem(KEY,on?'on':'off');}catch(e){}if(on)context();apply();document.querySelectorAll('.snd-btn').forEach(b=>{b.classList.toggle('off',!on);b.setAttribute('aria-pressed',String(on));b.setAttribute('aria-label',on?'BGMを消す':'BGMを鳴らす');});}
+  const away=v=>{hidden=v;if(v&&playing&&nodes[playing]){try{nodes[playing].s.stop();}catch(e){}delete nodes[playing];playing=null;}if(ctx){try{v?ctx.suspend():ctx.resume();}catch(e){}}apply();};
+  document.addEventListener('visibilitychange',()=>away(document.hidden));
+  addEventListener('pagehide',()=>away(true));addEventListener('pageshow',()=>away(document.hidden));
+  addEventListener('pointerdown',()=>{if(on){context();setTimeout(apply,0);}},{capture:true,passive:true});
+  addEventListener('keydown',()=>{if(on){context();setTimeout(apply,0);}},{capture:true,passive:true});
+  return {want,jingle,setOn,on:()=>on,playing:()=>playing,wanted:()=>wanted};
+})();
+const SCREEN_BGM={title:'title',home:'title',aboutView:'title',notesView:'notebook'};
+const CASE_BGM={bronch:'day',gastro:'day',hps:'day',asthma:'day',dka:'night',sepsis:'night',hv:'night',co:'night',nh3:'nicu',rta:'night',tbi:'night',bpd:'dawn'};
+const SND_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9z" fill="currentColor"/><path class="w1" d="M16.5 8.5a5 5 0 0 1 0 7"/><path class="w2" d="M19 6a8.5 8.5 0 0 1 0 12"/><path class="x" d="M16 9l5 6M21 9l-5 6"/></svg>';
+
+/* ========== 保存 ========== */
+const SKEY='bgm-progress-v1';
+let PROG={cases:{},cards:[],bands:[]};
+try{const s=localStorage.getItem(SKEY);if(s)PROG=Object.assign(PROG,JSON.parse(s));}catch(e){}
+function save(){try{localStorage.setItem(SKEY,JSON.stringify(PROG));}catch(e){}}
+function earn(id){if(id&&!PROG.cards.includes(id)){PROG.cards.push(id);save();BGM.jingle('note');toast('マスターノートに追加：'+CARDS[id].t);}}
+function toast(t){const d=el('div','toast'+($('#caseView')&&!$('#caseView').hidden?' in-case':''),t);document.body.appendChild(d);setTimeout(()=>d.remove(),2600);}
+
+/* ========== 酸塩基マップ ========== */
+const M={w:440,h:340,ml:44,mr:12,mt:12,mb:40,pmin:10,pmax:120,phmin:6.8,phmax:7.8};
+const mx=p=>M.ml+(Math.log(p)-Math.log(M.pmin))/(Math.log(M.pmax)-Math.log(M.pmin))*(M.w-M.ml-M.mr);
+const my=ph=>M.mt+(M.phmax-ph)/(M.phmax-M.phmin)*(M.h-M.mt-M.mb);
+const BANDS={
+  macid:{n:'代謝性アシドーシス',c:'#FF5E8A',gen:()=>band(range(3,24,0.5).map(h=>{const p=1.5*h+8;return [[p-2,h],[p+2,h]];}))},
+  malk:{n:'代謝性アルカローシス',c:'#5B7CFA',gen:()=>band(range(24,50,0.5).map(h=>{const p=40+0.7*(h-24);return [[p-5,h],[p+5,h]];}))},
+  racA:{n:'急性 呼吸性アシドーシス',c:'#1BA7C9',gen:()=>band(range(40,110,1).map(p=>{const h=24+0.1*(p-40);return [[p,h-1.5],[p,h+1.5]];}))},
+  racC:{n:'慢性 呼吸性アシドーシス',c:'#2a8fa8',gen:()=>band(range(40,110,1).map(p=>{const h=24+0.35*(p-40);return [[p,h-2],[p,h+2]];}))},
+  ralkA:{n:'急性 呼吸性アルカローシス',c:'#6FD6B0',gen:()=>band(range(12,40,0.5).map(p=>{const h=24-0.2*(40-p);return [[p,h-1.5],[p,h+1.5]];}))},
+  ralkC:{n:'慢性 呼吸性アルカローシス',c:'#4fae86',gen:()=>band(range(14,40,0.5).map(p=>{const h=Math.max(10,24-0.5*(40-p));return [[p,h-1.5],[p,h+1.5]];}))}
+};
+function range(a,b,s){const r=[];for(let x=a;x<=b+1e-9;x+=s)r.push(x);return r;}
+function band(pairs){const lo=pairs.map(q=>q[0]),hi=pairs.map(q=>q[1]).reverse();return lo.concat(hi).map(([p,h])=>[mx(p),my(PH(h,p))]);}
+let showAll=false;
+function drawMap(state){
+  const W=M.w,H=M.h,pw=W-M.ml-M.mr,ph=H-M.mt-M.mb;
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="PaCO2とpHの酸塩基マップ"><defs><clipPath id="pa"><rect x="${M.ml}" y="${M.mt}" width="${pw}" height="${ph}"/></clipPath>
+  <radialGradient id="glow"><stop offset="0" stop-color="#FF5E8A" stop-opacity=".9"/><stop offset="1" stop-color="#FF5E8A" stop-opacity="0"/></radialGradient></defs>`;
+  s+=`<rect x="${M.ml}" y="${M.mt}" width="${pw}" height="${ph}" fill="#FFFDF8" stroke="#E4D3EA"/>`;
+  // acid / alkali background tint
+  s+=`<g clip-path="url(#pa)"><rect x="${M.ml}" y="${my(7.35)}" width="${pw}" height="${my(6.8)-my(7.35)}" fill="#FF5E8A" fill-opacity=".05"/><rect x="${M.ml}" y="${M.mt}" width="${pw}" height="${my(7.45)-M.mt}" fill="#5B7CFA" fill-opacity=".05"/>`;
+  // isopleths
+  [5,10,15,20,24,30,40,50].forEach(h=>{const a=[10,120].map(p=>[mx(p),my(PH(h,p))]);s+=`<line x1="${a[0][0]}" y1="${a[0][1]}" x2="${a[1][0]}" y2="${a[1][1]}" stroke="#E79A00" stroke-opacity="${h===24?.45:.18}" stroke-dasharray="${h===24?'':'3 4'}"/>`;});
+  // bands
+  const vis=showAll?Object.keys(BANDS):(state.bands||[]);
+  Object.keys(BANDS).forEach(k=>{if(!vis.includes(k))return;const b=BANDS[k];const pts=b.gen().map(q=>q.map(v=>v.toFixed(1)).join(',')).join(' ');const hot=(state.hot||[]).includes(k);
+    s+=`<polygon points="${pts}" fill="${b.c}" fill-opacity="${hot?.42:.2}" stroke="${b.c}" stroke-opacity="${hot?.9:.45}" stroke-width="${hot?1.5:1}"/>`;});
+  // normal box
+  s+=`<rect x="${mx(35)}" y="${my(7.45)}" width="${mx(45)-mx(35)}" height="${my(7.35)-my(7.45)}" fill="#12C48B" fill-opacity=".18" stroke="#12C48B" stroke-opacity=".8"/></g>`;
+  s+=`<text x="${mx(45)+4}" y="${my(7.45)-4}" fill="#12C48B" font-size="10" font-family="var(--f-body)">正常</text>`;
+  // iso labels (top/right edges)
+  [5,10,15,20,24,30,40,50].forEach(h=>{let p=120,v=PH(h,p);if(v>M.phmax){p=h/(0.03*Math.pow(10,M.phmax-6.1));v=M.phmax;}if(v<M.phmin)return;
+    const X=mx(p),Y=my(v);if(X<M.ml+10)return;s+=`<text x="${(X-2).toFixed(1)}" y="${(Y+(v>=M.phmax-.001?11:-3)).toFixed(1)}" fill="#E79A00" fill-opacity=".75" font-size="9.5" text-anchor="end" font-family="var(--f-num)">${h}</text>`;});
+  // axes
+  [6.9,7.0,7.1,7.2,7.3,7.4,7.5,7.6,7.7].forEach(v=>{s+=`<line x1="${M.ml-4}" x2="${M.ml}" y1="${my(v)}" y2="${my(v)}" stroke="#A4A6C2"/><text x="${M.ml-7}" y="${my(v)+3.5}" fill="#767898" font-size="10" text-anchor="end" font-family="var(--f-num)">${v.toFixed(1)}</text>`;});
+  [10,15,20,30,40,60,80,100].forEach(p=>{s+=`<line y1="${H-M.mb}" y2="${H-M.mb+4}" x1="${mx(p)}" x2="${mx(p)}" stroke="#A4A6C2"/><text x="${mx(p)}" y="${H-M.mb+15}" fill="#767898" font-size="10" text-anchor="middle" font-family="var(--f-num)">${p}</text>`;});
+  s+=`<text x="${M.ml+pw/2}" y="${H-6}" fill="#1BA7C9" font-size="11" text-anchor="middle" font-family="var(--f-body)">PaCO₂ (mmHg・対数) → 肺</text>`;
+  s+=`<text x="12" y="${M.mt+ph/2}" fill="#767898" font-size="11" text-anchor="middle" transform="rotate(-90 12 ${M.mt+ph/2})" font-family="var(--f-body)">pH</text>`;
+  s+=`<text x="${M.ml+6}" y="${M.mt+14}" fill="#E79A00" fill-opacity=".8" font-size="10" font-family="var(--f-body)">黄の点線 = HCO₃⁻ 等値線</text>`;
+  s+=`<g clip-path="url(#pa)">`;
+  // expected markers
+  (state.expect||[]).forEach(e=>{const X=mx(e.p),Y=my(PH(e.h,e.p));
+    if(e.range){const a=[mx(e.range[0]),my(PH(e.h,e.range[0]))],b=[mx(e.range[1]),my(PH(e.h,e.range[1]))];s+=`<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" stroke="#262745" stroke-width="5" stroke-opacity=".35" stroke-linecap="round"/>`;}
+    s+=`<path d="M${X} ${Y-6}L${X+6} ${Y}L${X} ${Y+6}L${X-6} ${Y}Z" fill="none" stroke="#262745" stroke-width="1.4"/><text x="${X+9}" y="${Y+4}" fill="#262745" font-size="10.5" font-family="var(--f-body)">${e.l}</text>`;});
+  // trail
+  const tr=state.trail||[];
+  if(tr.length>1){s+=`<polyline points="${tr.map(g=>mx(g.pco2).toFixed(1)+','+my(g.ph).toFixed(1)).join(' ')}" fill="none" stroke="#262745" stroke-opacity=".55" stroke-width="1.5" stroke-dasharray="4 3"/>`;
+    tr.slice(0,-1).forEach((g,i)=>{s+=`<circle cx="${mx(g.pco2)}" cy="${my(g.ph)}" r="4" fill="#767898"/><text x="${mx(g.pco2)+6}" y="${my(g.ph)-6}" fill="#767898" font-size="9.5" font-family="var(--f-num)">${i+1}</text>`;});}
+  // ghost
+  if(state.ghost){const g=state.ghost;s+=`<circle cx="${mx(clamp(g.pco2,10,120))}" cy="${my(clamp(g.ph,6.8,7.8))}" r="9" fill="none" stroke="#1BA7C9" stroke-width="1.6" stroke-dasharray="3 3"/><text x="${mx(clamp(g.pco2,10,120))+12}" y="${my(clamp(g.ph,6.8,7.8))+4}" fill="#1BA7C9" font-size="10" font-family="var(--f-body)">予測</text>`;}
+  // current point
+  if(tr.length){const g=tr[tr.length-1];const X=mx(clamp(g.pco2,10,120)),Y=my(clamp(g.ph,6.8,7.8));
+    s+=`<circle cx="${X}" cy="${Y}" r="16" fill="url(#glow)" opacity=".35"><animate attributeName="r" values="10;18;10" dur="2s" repeatCount="indefinite"/></circle><circle cx="${X}" cy="${Y}" r="7" fill="#FF5E8A" stroke="#fff" stroke-width="2.5"/>
+    <text x="${X+10}" y="${Y-9}" fill="#262745" font-size="11" font-weight="700" font-family="var(--f-num)">${f2(g.ph)} / ${f0(g.pco2)}</text>`;}
+  s+=`</g></svg>`;
+  $('#map').innerHTML=s;
+  $('#legend').innerHTML=Object.keys(BANDS).filter(k=>vis.includes(k)).map(k=>`<span><i style="background:${BANDS[k].c}"></i>${BANDS[k].n}</span>`).join('')+`<span><i style="background:#12C48B"></i>正常</span>`;
+}
+
+/* ========== 天秤 ========== */
+function seesawSVG(h,p,opts={}){
+  const ph=PH(h,p),ang=clamp((ph-7.4)*60,-24,24),nd=v=>clamp((v-7.4)*110,-46,46);
+  const L=Math.sqrt(h/24)*30,R=Math.sqrt((0.03*p)/1.2)*30;
+  const cx=160,cy=124,arm=108,ra=84;
+  const pt=(v,r)=>{const a=nd(v)*Math.PI/180;return [cx+r*Math.sin(a),cy-r*Math.cos(a)];};
+  let s=`<svg viewBox="0 0 320 196" role="img" aria-label="HCO3とCO2の天秤 pH ${f2(ph)}">`;
+  const A=pt(6.98,ra),B=pt(7.82,ra);s+=`<path d="M${A[0]} ${A[1]} A${ra} ${ra} 0 0 1 ${B[0]} ${B[1]}" fill="none" stroke="#E4D3EA" stroke-width="9" stroke-linecap="round"/>`;
+  const a1=pt(7.35,ra),a2=pt(7.45,ra);s+=`<path d="M${a1[0]} ${a1[1]} A${ra} ${ra} 0 0 1 ${a2[0]} ${a2[1]}" fill="none" stroke="#12C48B" stroke-width="9"/>`;
+  [7.0,7.2,7.4,7.6,7.8].forEach(v=>{const t=pt(v,ra+13);s+=`<text x="${t[0].toFixed(1)}" y="${(t[1]+3).toFixed(1)}" fill="#767898" font-size="9.5" text-anchor="middle" font-family="var(--f-num)">${v.toFixed(1)}</text>`;});
+  s+=`<text x="10" y="16" fill="#FF5E8A" font-size="11" font-family="var(--f-body)">← 酸性</text><text x="310" y="16" fill="#5B7CFA" font-size="11" text-anchor="end" font-family="var(--f-body)">アルカリ性 →</text>`;
+  s+=`<g style="transition:transform .7s cubic-bezier(.3,1.4,.5,1);transform-origin:${cx}px ${cy}px;transform:rotate(${nd(ph)}deg)"><line x1="${cx}" y1="${cy}" x2="${cx}" y2="${cy-ra+6}" stroke="${ph<7.35?'#FF5E8A':ph>7.45?'#5B7CFA':'#12C48B'}" stroke-width="3" stroke-linecap="round"/></g>`;
+  s+=`<g style="transition:transform .7s cubic-bezier(.3,1.4,.5,1);transform-origin:${cx}px ${cy}px;transform:rotate(${ang}deg)">`;
+  s+=`<rect x="${cx-arm}" y="${cy-3}" width="${arm*2}" height="6" rx="3" fill="#767898"/>`;
+  s+=`<g transform="translate(${cx+arm-20} ${cy-3}) rotate(${-ang})"><rect x="${-L/2}" y="${-L}" width="${L}" height="${L}" rx="4" fill="#E79A00" ${opts.hiH?'stroke="#262745" stroke-width="2"':''}/><text x="0" y="${-L-5}" fill="#E79A00" font-size="11" text-anchor="middle" font-family="var(--f-num)">HCO₃⁻ ${f1(h)}</text></g>`;
+  s+=`<g transform="translate(${cx-arm+20} ${cy-3}) rotate(${-ang})"><circle cx="0" cy="${-R/2}" r="${R/2}" fill="#1BA7C9" ${opts.hiP?'stroke="#262745" stroke-width="2"':''}/><text x="0" y="${-R-5}" fill="#1BA7C9" font-size="11" text-anchor="middle" font-family="var(--f-num)">CO₂ ${f0(p)}</text></g>`;
+  s+=`</g><circle cx="${cx}" cy="${cy}" r="4" fill="#262745"/><path d="M${cx-14} ${cy+30}L${cx} ${cy+3}L${cx+14} ${cy+30}Z" fill="#E4D3EA"/>`;
+  s+=`<text x="34" y="${cy+46}" fill="#1BA7C9" font-size="11" font-family="var(--f-body)">肺（呼吸）</text><text x="286" y="${cy+46}" fill="#E79A00" font-size="11" text-anchor="end" font-family="var(--f-body)">腎臓（代謝）</text>`;
+  s+=`<text x="${cx}" y="${cy+66}" fill="#262745" font-size="12" text-anchor="middle" font-family="var(--f-num)">${f1(h)} ÷ ${(0.03*p).toFixed(2)} = ${(h/(0.03*p)).toFixed(1)} → pH ${f2(ph)}</text>`;
+  return s+'</svg>';
+}
+
+/* ========== ギャンブログラム ========== */
+function gambleSVG(g,excessLabel){
+  const ag=g.na-g.cl-g.hco3,normU=Math.max(2,12-2.5*(4-g.alb)),ex=Math.max(0,ag-normU);
+  const sc=1.45,top=10,base=top+150*sc,W=300;const y=v=>base-v*sc;
+  const col=(x,segs)=>{let acc=0,o='';segs.forEach(([v,c,t])=>{const h=v*sc;o+=`<rect x="${x}" y="${(y(acc+v)).toFixed(1)}" width="74" height="${h.toFixed(1)}" fill="${c}" stroke="#262745"/>`;if(h>13)o+=`<text x="${x+37}" y="${(y(acc+v/2)+4).toFixed(1)}" fill="#262745" font-size="11" text-anchor="middle" font-weight="700" font-family="var(--f-body)">${t}</text>`;acc+=v;});return o;};
+  let s=`<svg viewBox="0 0 ${W} ${base+30}" style="width:100%;max-width:340px;height:auto;display:block;margin:0 auto" role="img" aria-label="陽イオンと陰イオンの柱グラフ">`;
+  s+=col(40,[[g.na,'#FFD9E3','Na⁺ '+g.na]]);
+  s+=col(150,[[g.cl,'#CFE6F2','Cl⁻ '+g.cl],[g.hco3,'#E79A00','HCO₃⁻ '+f0(g.hco3)],[normU,'#A4A6C2',''],[ex,'#FF5E8A','']]);
+  // AG brace
+  const t0=y(g.cl+g.hco3),t1=y(g.cl+g.hco3+ag);
+  s+=`<path d="M230 ${t0}h6v${t1-t0}h-6" fill="none" stroke="#262745"/><text x="242" y="${(t0+t1)/2+4}" fill="#262745" font-size="12" font-family="var(--f-num)">AG ${f0(ag)}</text>`;
+  if(ex>0)s+=`<text x="242" y="${(y(g.cl+g.hco3+normU)+t1)/2+20}" fill="#FF5E8A" font-size="10.5" font-family="var(--f-body)">${excessLabel||'増えた陰イオン'}</text>`;
+  s+=`<text x="242" y="${t0-4}" fill="#767898" font-size="10" font-family="var(--f-body)">Alb 等</text>`;
+  s+=`<text x="77" y="${base+18}" fill="#767898" font-size="11" text-anchor="middle" font-family="var(--f-body)">陽イオン</text><text x="187" y="${base+18}" fill="#767898" font-size="11" text-anchor="middle" font-family="var(--f-body)">陰イオン</text>`;
+  return s+'</svg>';
+}
+
+/* ========== 酸素化パネル ========== */
+function oxyHTML(g,map){
+  const pA=g.fio2*713-g.pco2/0.8,pf=g.po2/g.fio2,aa=pA-g.po2;
+  let h=`<div class="derived"><div class="dv"><span class="k">P/F 比</span><span class="v">${f0(pf)}</span></div><div class="dv"><span class="k">PAO₂</span><span class="v">${f0(pA)}</span></div><div class="dv"><span class="k">A-aDO₂</span><span class="v">${f0(aa)}</span></div>`;
+  if(map){const oi=map*g.fio2*100/g.po2;h+=`<div class="dv ${oi>=16?'bad':oi>=4?'warn':''}"><span class="k">MAP</span><span class="v">${f0(map)}</span></div><div class="dv ${oi>=16?'bad':oi>=4?'warn':''}"><span class="k">OI</span><span class="v">${f1(oi)}</span></div><div class="dv"><span class="k">SpO₂（推定）</span><span class="v">${f0(SPO2(g.po2))}%</span></div>`;}
+  h+='</div>';
+  if(map){const oi=map*g.fio2*100/g.po2,X=v=>clamp(v/30*100,0,100);
+    h+=`<div style="margin-top:8px;font-size:11px;color:var(--muted)">OI スケール（PALICC-2・侵襲的換気）</div><div style="position:relative;height:16px;border-radius:4px;overflow:hidden;display:flex;margin-top:3px"><div style="width:${X(4)}%;background:#E9E4F2"></div><div style="width:${X(16)-X(4)}%;background:#FFE3A6"></div><div style="flex:1;background:#FFC2CF"></div><div style="position:absolute;left:calc(${X(oi)}% - 2px);top:0;bottom:0;width:4px;background:#262745"></div></div><div style="display:flex;justify-content:space-between;font-size:10.5px;color:var(--muted);font-family:var(--f-num)"><span>0</span><span>4</span><span style="margin-left:-30%">16 重症</span><span>30</span></div>`;}
+  return h;
+}
+
+/* ========== ガス伝票 ========== */
+function fullGas(g){const o=Object.assign({},g);o.ph=PH(g.hco3,g.pco2);o.be=BEx(g.hco3,o.ph);return o;}
+function flag(k,v){const r=REF[k];if(!r)return '';v=k==='ph'?Math.round(v*100)/100:Math.round(v*10)/10;return v<r[0]?'L':v>r[1]?'H':'';}
+let slipCount=231;
+const EXTRA=[['ica','iCa','mmol/L',v=>f2(v)],['cohb','COHb','%',v=>f1(v)],['methb','MetHb','%',v=>f1(v)]];
+function renderSlip(g,hist,focus,anim){
+  if(!g){$('#slip').innerHTML=`<div class="slip"><div class="slip-empty"><img src="${A('item_analyzer')}" alt="" onerror="this.remove()">検体待ち…</div></div>`;return;}
+  const rows=[['ph','pH',f2(g.ph),''],['pco2','PaCO₂',f0(g.pco2),'mmHg'],['po2','PaO₂',f0(g.po2),'mmHg'],['hco3','HCO₃⁻',f1(g.hco3),'mmol/L'],['be','BE',(g.be>0?'+':'')+f1(g.be),'mmol/L'],'-',['na','Na⁺',f0(g.na),'mmol/L'],['k','K⁺',f1(g.k),'mmol/L'],['cl','Cl⁻',f0(g.cl),'mmol/L'],['glu','Glu',f0(g.glu),'mg/dL'],['lac','Lac',f1(g.lac),'mmol/L'],['alb','Alb',f1(g.alb),'g/dL']];
+  EXTRA.forEach(x=>{if(g[x[0]]!=null)rows.push(...(rows.includes('=')?[]:['=']),[x[0],x[1],x[3](g[x[0]]),x[2]]);});
+  let h=`<div class="slip${anim?' printing':''}"><div class="hd">BLOOD GAS #${String(slipCount).padStart(4,'0')}<br>${g.label}　${g.src}　FiO₂ ${g.fio2.toFixed(2)}</div>`;
+  rows.forEach((r,i)=>{if(r==='-'||r==='='){h+='<div class="sep"></div>';return;}const raw=g[r[0]],fl=r[0]==='po2'&&g.fio2>0.21?(raw<80?'L':''):flag(r[0],raw);
+    h+=`<div class="row${(focus||[]).includes(r[0])?' hl':''}" style="animation-delay:${anim?i*60:0}ms"><span>${r[1]}</span><span class="v">${r[2]}</span><span class="u">${r[3]}</span><span class="fl ${fl}">${fl}</span></div>`;});
+  if(hist&&hist.length>1)h+=`<div class="hist">経過 pH/PaCO₂<br>${hist.map((x,i)=>`${i+1}) ${f2(x.ph)}/${f0(x.pco2)}`).slice(-6).join('　')}</div>`;
+  $('#slip').innerHTML=h+'</div>';
+}
+
+/* ========== 呼吸器モデル ========== */
+const isMob=()=>matchMedia('(max-width:860px)').matches;
+/* スマホ用：伝票を会話の流れの中に小さく差し込む */
+function gasTiles(g,focus,only){
+  const rows=[['ph','pH',f2(g.ph)],['pco2','PaCO₂',f0(g.pco2)],['po2','PaO₂',f0(g.po2)],['hco3','HCO₃⁻',f1(g.hco3)],['be','BE',(g.be>0?'+':'')+f1(g.be)],['na','Na⁺',f0(g.na)],['k','K⁺',f1(g.k)],['cl','Cl⁻',f0(g.cl)],['glu','Glu',f0(g.glu)],['lac','Lac',f1(g.lac)],['alb','Alb',f1(g.alb)]];
+  EXTRA.forEach(x=>{if(g[x[0]]!=null)rows.push([x[0],x[1],x[3](g[x[0]])]);});
+  const list=only?rows.filter(r=>focus.includes(r[0])||['ph','pco2','hco3'].includes(r[0])):rows;
+  return `<div class="gas-inline"><div class="gh"><span>${only?'伝票より':'BLOOD GAS #'+String(slipCount).padStart(4,'0')}　${g.label||''}</span><span>${g.src||''} FiO₂ ${g.fio2.toFixed(2)}</span></div><div class="gg">${list.map(r=>{const raw=g[r[0]],fl=r[0]==='po2'&&g.fio2>0.21?(raw<80?'L':''):flag(r[0],raw);return `<div class="gt ${fl}${(focus||[]).includes(r[0])?' hl':''}"><span>${r[1]}</span><b>${r[2]}</b></div>`;}).join('')}</div></div>`;}
+function mapInline(){const d=el('div','inline-vis map-inline',$('#map').innerHTML+`<div class="legend">${$('#legend').innerHTML}</div>`);return d;}
+function gRaw(peep,c){const x=Math.max(0,peep-c.pOpen)/4;let g=0.02+0.14*(1-Math.exp(-x*x));if(peep>c.pOver)g*=Math.max(0.55,1-0.07*(peep-c.pOver));return g;}
+function ventCalc(c,s,wt){
+  const te=(60/s.rr)*(2/3),trap=Math.exp(-te/c.tau),vtEff=s.vt*(1-trap);
+  const va=Math.max(0.3,s.rr*(vtEff-c.vd));
+  const pco2=clamp(c.k/va,8,160),hco3=c.h0+0.1*(pco2-c.p0),ph=PH(hco3,pco2);
+  const dP=s.vt/c.crs,auto=trap*s.vt/c.crs,pplat=s.peep+auto+dP,map=s.peep+auto+dP/3;
+  const pA=s.fio2*713-pco2/0.8;
+  const g=c.gFixed!=null?c.gFixed:Math.min(0.92,gRaw(s.peep,c)*c.gscale);
+  const po2=Math.max(32,40+(pA-40)*g);
+  let bp=null;if(c.bpBase){const drop=Math.max(0,s.peep-12)*7+Math.max(0,auto-1)*4;bp=[Math.round(c.bpBase[0]+6-drop),Math.round(c.bpBase[1]+3-drop*0.6)];}
+  return {c,s,te,trap,va,mv:s.rr*s.vt*wt/1000,pco2,hco3,ph,dP,auto,pplat,map,po2,spo2:SPO2(po2),bp};
+}
+function calibrate(c,wt){
+  const s=c.init;if(c.k==null){const te=(60/s.rr)*(2/3),trap=Math.exp(-te/c.tau);c.k=c.p0*s.rr*(s.vt*(1-trap)-c.vd);}
+  if(c.gFixed==null){const pA=s.fio2*713-c.p0/0.8;c.gscale=(c.po2_0-40)/((pA-40)*gRaw(s.peep,c));}
+}
+
+/* ========== モニタ波形 ========== */
+let MON={hr:0,spo2:0,rr:0,bp:'--',alarm:false},waveT=0,lastTs=0;
+function setMon(v){const wasA=!!MON.alarm;Object.assign(MON,v);if(!!MON.alarm!==wasA&&cur==='caseView'&&ST)BGM.want(MON.alarm?'alarm':CASE_BGM[ST.c.id]);$('#mHR').textContent=MON.hr?f0(MON.hr):'--';$('#mSp').textContent=MON.spo2?f0(MON.spo2):'--';$('#mRR').textContent=MON.rr?f0(MON.rr):'--';$('#mBP').textContent=MON.bp||'--';$('#mT').textContent=MON.t?('BT '+MON.t+'℃'):'mmHg';$('#mRRs').textContent=MON.vent?'/min（呼吸器）':'/min';$('#monitor').classList.toggle('alarm',!!MON.alarm);}
+function ecg(ph){ph=ph%1;if(ph<.08)return Math.sin(ph/.08*Math.PI)*.12;if(ph<.16)return 0;if(ph<.18)return -.15;if(ph<.21)return 1;if(ph<.24)return -.3;if(ph<.34)return 0;if(ph<.48)return Math.sin((ph-.34)/.14*Math.PI)*.25;return 0;}
+function pleth(ph){ph=ph%1;return ph<.25?Math.sin(ph/.25*Math.PI/2):Math.max(0,Math.cos((ph-.25)/.75*Math.PI/2))*.9+(ph>.4&&ph<.55?.08*Math.sin((ph-.4)/.15*Math.PI):0);}
+const cv=$('#wave'),cx2=cv.getContext('2d');let wx=0;
+function waveLoop(ts){
+  const dt=lastTs?Math.min(50,ts-lastTs):16;lastTs=ts;
+  if(!$('#caseView').hidden&&MON.hr){
+    const W=cv.width,H=cv.height,speed=W/4000*dt;const steps=Math.max(1,Math.round(speed));
+    for(let i=0;i<steps;i++){waveT+=dt/steps/1000;const x=wx;wx=(wx+1)%W;
+      cx2.fillStyle='#071216';cx2.fillRect(x,0,8,H);
+      const b=waveT*MON.hr/60,e=ecg(b),p=pleth(b-0.12);
+      cx2.fillStyle='#6ee68f';cx2.fillRect(x,46-e*36,2,2);
+      cx2.fillStyle='#5fd7ff';cx2.fillRect(x,128-p*36,2,2);}
+  }
+  if(!RM)requestAnimationFrame(waveLoop);
+}
+function staticWave(){const W=cv.width,H=cv.height;cx2.fillStyle='#071216';cx2.fillRect(0,0,W,H);for(let x=0;x<W;x++){const b=x/W*4*(MON.hr||100)/60;cx2.fillStyle='#6ee68f';cx2.fillRect(x,46-ecg(b)*36,2,2);cx2.fillStyle='#5fd7ff';cx2.fillRect(x,128-pleth(b-.12)*36,2,2);}}
+
+/* ========== 考え方レッスン（初出のときだけ、問題の前に） ========== */
+const LESSONS={
+  ph:{t:'ガスを読む順番と pH',also:['hh'],fx:'pH 7.35〜7.45 が正常',
+    how:['ガスは毎回<b>同じ順番</b>で読む。<b>① pH → ② 一次性変化 → ③ 代償 → ④ AG・酸素化</b>。','pH が 7.35 より低ければ<b class="c-acid">アシデミア</b>（酸性に傾いている）、7.45 より高ければ<b class="c-base">アルカレミア</b>（アルカリ性に傾いている）。','pH は <b class="c-hco3">HCO₃⁻</b>（腎臓・代謝）と <b class="c-co2">PaCO₂</b>（肺）の比で決まる：<span class="f">pH = 6.1 + log(HCO₃⁻ ÷ 0.03×PaCO₂)</span>。比が 20：1 なら 7.40。画面の<b>天秤</b>がこの綱引きだよ。'],
+    eg:'pH 7.30 → アシデミア。pH 7.50 → アルカレミア。'},
+  primary:{t:'一次性変化：肺か、代謝か',fx:'PaCO₂ 35〜45 mmHg ／ HCO₃⁻ 22〜26 mmol/L',
+    how:['<b class="c-co2">CO₂</b> は水に溶けると酸になる。<b>PaCO₂ が上がると酸性、下がるとアルカリ性</b>（呼吸性）。','<b class="c-hco3">HCO₃⁻</b> はアルカリ。<b>HCO₃⁻ が下がると酸性、上がるとアルカリ性</b>（代謝性）。','pH と<b>同じ向き</b>に動かしている方が原因（一次性変化）。<b>反対向き</b>に動いている方は、pH を戻そうとする代償だよ。'],
+    eg:'pH 7.30、PaCO₂ 30、HCO₃⁻ 14。酸性に向けているのは HCO₃⁻ 14 の低下 → <b>代謝性アシドーシス</b>。PaCO₂ 30 はアルカリ側に動いているので代償。'},
+  racomp:{t:'呼吸性アシドーシスの代償（急性か慢性か）',fx:'PaCO₂ が 40 から 10 上がるごとに HCO₃⁻：急性 +1 ／ 慢性 +3.5',
+    how:['CO₂ が溜まると、腎臓が HCO₃⁻ を貯めて pH を戻そうとする。ただし腎臓の代償には<b>3〜5日</b>かかる。','予測 HCO₃⁻ = 24 + 係数 ×（PaCO₂ − 40）÷ 10 を<b>急性と慢性の両方</b>で計算し、実測に近い方を選ぶ。','どちらの予測からも大きく外れていたら、別の代謝性障害が合併している。'],
+    eg:'PaCO₂ 60 → 急性 24 + 1 × 2 = <b>26</b>、慢性 24 + 3.5 × 2 = <b>31</b>。実測 HCO₃⁻ 26 なら急性。'},
+  oxy:{t:'酸素化の指標：P/F 比',fx:'P/F = PaO₂ ÷ FiO₂（FiO₂ は小数で）',
+    how:['酸素をどれだけ吸わせて、血液にどれだけ入ったかの比。<b>低いほど酸素化が悪い</b>。室内気で PaO₂ 95 なら約 450。','FiO₂ は小数にする（40% → 0.40）。','肺胞の酸素分圧 <span class="f">PAO₂ = FiO₂×713 − PaCO₂÷0.8</span>。CO₂ が溜まると肺胞の酸素が押し出されるので、換気が改善すると酸素化も良くなる。'],
+    eg:'FiO₂ 0.50 で PaO₂ 100 → P/F = 100 ÷ 0.50 = <b>200</b>。'},
+  winter:{t:'Winter の式（代謝性アシドーシスの代償）',fx:'予測 PaCO₂ = 1.5 × HCO₃⁻ + 8 ± 2',
+    how:['代謝性アシドーシスになると、呼吸を速く深くして CO₂ を吐き、pH を守る（呼吸性代償）。','実測 PaCO₂ が予測範囲に入れば<b>適切な代償</b>。','予測より<b>高い</b> → 吐ききれていない＝<b>呼吸性アシドーシスの合併</b>。予測より<b>低い</b> → 吐きすぎ＝<b>呼吸性アルカローシスの合併</b>。'],
+    eg:'HCO₃⁻ 10 → 1.5 × 10 + 8 = <b>23 ± 2（21〜25）</b>。'},
+  ag:{t:'アニオンギャップ（AG）',fx:'AG = Na⁺ −（Cl⁻ + HCO₃⁻）　基準 12 ± 2',
+    how:['血液のプラスとマイナスは釣り合っている。測っている陰イオン（Cl⁻・HCO₃⁻）を引いた残りが、<b>測っていない陰イオン</b>。','<b>開大</b>：乳酸・ケトン体などの「見えない酸」が増えた（乳酸アシドーシス、DKA、腎不全、中毒）。','<b>正常（高Cl性）</b>：HCO₃⁻ を失い、代わりに Cl⁻ が増えた（下痢、尿細管性アシドーシス、大量の生理食塩水）。'],
+    eg:'Na 140、Cl 100、HCO₃⁻ 10 → 140 −（100 + 10）= <b>30</b>。AG開大。'},
+  malk:{t:'代謝性アルカローシスの読み方',fx:'予測 PaCO₂ = 40 + 0.7 ×（HCO₃⁻ − 24）± 5',
+    how:['代謝性アルカローシスでは、呼吸を浅く遅くして CO₂ を溜めて代償する。','原因は2つに分ける。<b>Cl 反応性</b>：嘔吐・胃液吸引・利尿薬（尿Cl < 20 mEq/L が目安）。Cl⁻ と K⁺ を補えば治る。<b>Cl 抵抗性</b>：ミネラルコルチコイド過剰など。','胃液（HCl）を失うと Cl⁻ が足りず、腎臓が HCO₃⁻ を捨てられなくなる。低K血症も一緒に起こりやすい。'],
+    eg:'HCO₃⁻ 34 → 40 + 0.7 × 10 = <b>47 ± 5</b>。'},
+  ralk:{t:'呼吸性アルカローシスの代償（急性か慢性か）',fx:'PaCO₂ が 40 から 10 下がるごとに HCO₃⁻：急性 −2 ／ 慢性 −4〜5',
+    how:['CO₂ を吐きすぎると、腎臓が HCO₃⁻ を捨てて pH を戻そうとする。これも数日かかる。','急性と慢性の両方で予測 HCO₃⁻ を計算し、実測に近い方を選ぶ。','不安・痛み・喘息の初期・発熱・敗血症の初期などで起こる。'],
+    eg:'PaCO₂ 30 → 急性 24 − 2 × 1 = <b>22</b>、慢性 24 − 5 × 1 = <b>19</b>。'},
+  trend:{t:'“正常値”の罠：ガスは経過で読む',fx:'頻呼吸・努力呼吸 ＋ PaCO₂ 正常〜上昇 ＝ 疲労のサイン',
+    how:['息が苦しくて速く呼吸している子は、ふつう PaCO₂ が<b>下がる</b>。','症状が強いのに PaCO₂ が正常に戻った・上がってきたときは、CO₂ を吐けなくなってきた（呼吸筋疲労）サイン。呼吸不全の前触れ。','「静かになった」は改善とは限らない。<b>1点ではなく、前の値からの軌跡</b>で読む。'],
+    eg:'喘息発作で、1時間前 PaCO₂ 30 → 今 42。数字は正常範囲でも、悪くなっている。'},
+  delta:{t:'Δ比（デルタ・デルタ）',fx:'ΔAG ÷ ΔHCO₃⁻ ＝（AG − 12）÷（24 − HCO₃⁻）',
+    how:['AG開大性アシドーシスで、<b>AG が増えた分</b>と <b>HCO₃⁻ が減った分</b>を比べる。隠れたもう1つの代謝性障害を探す方法。','比 < 1：正AG性アシドーシスも合併。1〜2：純粋な AG 開大性アシドーシス。> 2：代謝性アルカローシスも合併。'],
+    eg:'AG 24、HCO₃⁻ 12 →（24 − 12）÷（24 − 12）= <b>1.0</b>。純粋な AG 開大性。'},
+  alkali:{t:'アルカリ（重炭酸）補充を使うとき',fx:'原因を止められるなら補充しない。HCO₃⁻ を作れない・失い続けるなら補充する',
+    how:['DKA や乳酸アシドーシスは、酸を作る原因を止めるのが治療（輸液・インスリン・循環の改善）。重炭酸は<b>原則使わない</b>。脳浮腫・低K血症の悪化・髄液の逆説的アシドーシスの心配がある。','遠位尿細管性アシドーシス（RTA）のように、腎臓が酸を出せず HCO₃⁻ を補えない病気では、アルカリ補充が<b>治療の柱</b>になる。K の補正を先に。']},
+  mixed:{t:'混合性酸塩基障害',fx:'実測が予測代償の範囲外 ＝ もう1つの障害がある',
+    how:['代償は予測式どおりに起こり、正常値を超えて行き過ぎることはない。','代謝性アシドーシスなのに PaCO₂ が 40 前後で「正常」に見えるとき、本来はもっと下がっているはず。<b>吐けていない＝呼吸性アシドーシスの合併</b>。','慢性呼吸性アシドーシスで HCO₃⁻ が予測より高すぎれば、<b>代謝性アルカローシスの合併</b>（利尿薬など）。'],
+    eg:'HCO₃⁻ 12 で PaCO₂ 40 → Winter の予測 26 ± 2 より高い → 呼吸性アシドーシスの合併。'},
+  agcorr:{t:'アルブミン補正 AG',fx:'補正AG = AG + 2.5 ×（4.0 − Alb[g/dL]）',
+    how:['測っていない陰イオンの主役は<b>アルブミン</b>。アルブミンが低いと AG は見かけ上小さくなる。','重症の子は低アルブミン血症が多い。補正しないと乳酸アシドーシスを見落とす。'],
+    eg:'AG 14、Alb 2.0 → 14 + 2.5 × 2 = <b>19</b>。実は開大している。'},
+  oi:{t:'OI（オキシジェネーション・インデックス）',fx:'OI = MAP × FiO₂ × 100 ÷ PaO₂',
+    how:['人工呼吸中は、気道内圧の助けも含めて酸素化を評価する。MAP は平均気道内圧（cmH₂O）。','小児の ARDS（PARDS）の重症度は PALICC-2 で、侵襲的換気中の OI 4〜16 未満が軽症〜中等症、<b>16 以上が重症</b>。'],
+    eg:'MAP 10、FiO₂ 0.6、PaO₂ 75 → 10 × 0.6 × 100 ÷ 75 = <b>8</b>。'},
+  aado2:{t:'A-aDO₂：肺の病気かを見分ける',fx:'A-aDO₂ = PAO₂ − PaO₂（PAO₂ = FiO₂×713 − PaCO₂÷0.8）',
+    how:['PAO₂ は肺胞の酸素、PaO₂ は血液の酸素。差が開く＝肺で酸素を受け渡せていない＝<b>肺の病気</b>。','室内気で正常は 5〜15 程度（年齢とともに広がる）。正常なら、過換気や低換気など<b>肺の外</b>の原因を考える。'],
+    eg:'室内気、PaCO₂ 40、PaO₂ 90 → PAO₂ = 150 − 50 = 100、A-aDO₂ = <b>10</b>（正常）。'},
+  ica:{t:'アルカレミアとイオン化 Ca',fx:'pH↑ → アルブミンに Ca が結合 → iCa↓',
+    how:['pH が上がるとアルブミンのマイナス電荷が増え、Ca²⁺ がくっつく。','体の Ca の総量は変わらなくても、働けるイオン化 Ca が減って、しびれ・手のこわばり（テタニー）が起きる。','原因（過換気など）が落ち着けば戻る。']},
+  cohb:{t:'SpO₂ の落とし穴：CO中毒',fx:'一般的なパルスオキシメータは COHb を酸素化Hbと区別できない',
+    how:['CO は酸素の200倍以上 Hb にくっつく。Hb が酸素を運べなくなり、組織が酸欠になって乳酸が上がる。','PaO₂ は血漿に溶けた酸素なので正常のまま。SpO₂ も COHb を酸素化Hbと数えてしまい、高く表示される。','煙を吸った子・頭痛・意識障害では、<b>CO-オキシメトリー</b>で COHb を測る。治療は 100% 酸素。']},
+  nh3:{t:'意識障害＋呼吸性アルカローシス',fx:'代謝性アシドーシスのない過換気 → アンモニアを測る',
+    how:['アンモニアは脳に入ると<b>呼吸中枢を刺激</b>して過換気を起こす。','重い感染症の新生児は、循環不全で<b>代謝性アシドーシス</b>になりやすい。代謝性アシドーシスがないのに過換気と意識障害があれば、尿素サイクル異常症などの<b>高アンモニア血症</b>を疑う。','アンモニアは採血ですぐ測れる。時間との勝負になる。']},
+  uag:{t:'尿アニオンギャップ',fx:'尿AG = 尿Na⁺ + 尿K⁺ − 尿Cl⁻',
+    how:['正AG性代謝性アシドーシスで、原因が腸か腎臓かを見分ける。','腎臓が酸（NH₄⁺）を尿に出せていれば、NH₄⁺ と一緒に Cl⁻ が出るので尿AG は<b>マイナス</b>（下痢など腸からの喪失）。','<b>プラス</b>なら腎臓が酸を出せていない（遠位尿細管性アシドーシスなど）。'],
+    eg:'尿 Na 30、K 20、Cl 80 → 30 + 20 − 80 = <b>−30</b>。酸は出せている。'},
+  paco2brain:{t:'PaCO₂ と脳血流',fx:'PaCO₂ 1 mmHg↓ で脳血流 約 2〜4%↓（目安）',
+    how:['CO₂ は脳の血管を動かす強い因子。PaCO₂ が<b>下がると血管が縮み</b>、脳血流が減る。上がると広がり、頭蓋内圧が上がる。','傷ついた脳には虚血が致命的。重症頭部外傷では予防的な過換気（PaCO₂ < 30）を避け、<b>35〜40</b> を目安にする。','強い過換気は、脳ヘルニア徴候があるときの一時しのぎ。']},
+  posthyper:{t:'慢性高 CO₂ の子の換気目標',fx:'目標 PaCO₂ ＝ その子の“いつもの値”',
+    how:['慢性的に CO₂ が高い子は、腎臓が何か月もかけて HCO₃⁻ を貯めている。','HCO₃⁻ はすぐには下がらない。急に PaCO₂ を 40 にすると強いアルカレミア（<b>post-hypercapnic alkalosis</b>）になる。','安定期のガスを確かめて、その値に近づける。']},
+  vapaco2:{t:'換気と PaCO₂',fx:'PaCO₂ ∝ CO₂ 産生 ÷ 肺胞換気量',
+    how:['PaCO₂ を下げたいときは<b>肺胞換気量</b>を増やす。肺胞換気量 =（Vt − 死腔量）× 呼吸数。','死腔（気管などガス交換しない部分）は1回ごとに無駄になる。Vt を減らしすぎると、死腔の割合が増えて効率が落ちる。','CO₂ 産生が同じなら、PaCO₂ を 2/3 にするには肺胞換気量を 1.5 倍にする。'],
+    eg:'PaCO₂ 60 を 45 にしたい → 肺胞換気量を 60 ÷ 45 ≈ <b>1.3 倍</b>に。'},
+  airtrap:{t:'閉塞性疾患とエアトラッピング',fx:'呼気時間 ≥ 3τ（時定数 τ = 抵抗 × コンプライアンス）',
+    how:['細気管支炎や喘息では、息を<b>吐く</b>のに時間がかかる。','I:E 1:2 なら、呼気時間 = 60 ÷ 呼吸数 × 2/3。呼吸数を上げすぎると吐ききれず、CO₂ が抜けないうえに内因性PEEP が溜まる。','呼吸数を上げるより、Vt を少し増やす方が効率的なことがある。'],
+    eg:'τ 0.35 秒なら 3τ = 1.05 秒。RR 30 → 呼気 1.33 秒で OK。RR 45 → 呼気 0.89 秒で足りない。'},
+  lung:{t:'肺保護換気',fx:'Vt ≤ 8 mL/kg・Pplat ≤ 28・ΔP ≤ 15 cmH₂O',
+    how:['硬い肺に大きな Vt を入れると、肺そのものを傷つける。プラトー圧と駆動圧（ΔP）を見張る。','酸素化は PEEP で肺胞を開いて改善する。ただし上げすぎると静脈還流が減り、血圧が下がる。','中等症〜重症の PARDS では、pH ≥ 7.20 程度までの高 CO₂ を許容する。']}
+};
+const VENT_LESSONS=['vapaco2','airtrap','lung'];
+function learned(k){return (PROG.lessons||[]).includes(k)||(PROG.cards||[]).includes(k);}
+const NOTICE=['trend','mixed','cohb','nh3','posthyper']; // 気づけるかが狙いの問題は先に教えない
+function lessonKeys(st){if(st.teach)return st.teach;const k=[];
+  if(/^STEP 1/.test(st.h||'')&&/pH/.test(st.h))k.push('ph');
+  if(/一次性変化/.test(st.h||''))k.push('primary');
+  if(st.card&&st.card!=='hh'&&!NOTICE.includes(st.card))k.push(st.card);return k;}
+async function teach(t,keys){
+  const todo=keys.filter(k=>LESSONS[k]&&!learned(k));if(!todo.length)return;
+  for(const k of todo){chk(t);const L=LESSONS[k];
+    PROG.lessons=PROG.lessons||[];[k,...(L.also||[])].forEach(x=>{if(!PROG.lessons.includes(x))PROG.lessons.push(x);});save();
+    setDoc('normal');await sleep(RM?0:300);chk(t);
+    const m=el('div','lesson');
+    m.innerHTML=`<div class="lh"><img src="${A('icon_doctor')}" alt=""><div><span class="lk">いぶき先生の 考え方レッスン</span><b>${L.t}</b></div></div>
+      <div class="lfx">${L.fx}</div><ol>${L.how.map(x=>`<li>${x}</li>`).join('')}</ol>${L.eg?`<div class="leg"><span>例</span>${L.eg}</div>`:''}`;
+    $('#log').appendChild(m);scrollLog();
+    await nextBtn(t,todo.indexOf(k)<todo.length-1?'次の考え方へ':'わかった。やってみる');}
+}
+
+/* ========== 進行エンジン ========== */
+const ABORT={};let token=0;
+let ST=null; // current case state
+function chk(t){if(t!==token)throw ABORT;}
+function scrollLog(){const lg=$('#log');if(!isMob()){lg.scrollTop=lg.scrollHeight;return;}
+  const last=lg.lastElementChild;if(!last)return;
+  requestAnimationFrame(()=>{const r=last.getBoundingClientRect(),top=$('#monitor').getBoundingClientRect().bottom+8,bot=innerHeight-$('#tabbar').offsetHeight-8;
+    let dy=0;if(r.bottom>bot)dy=r.bottom-bot;if(r.top-dy<top)dy=r.top-top;if(Math.abs(dy)>2)window.scrollBy({top:dy,behavior:RM?'auto':'smooth'});});}
+const NAMES={d:'いぶき先生',ns:'看護師 ミナミ',m:'ぷくぷく'};
+const A=n=>'assets/'+n+'.webp';
+function avatar(spk){const a=el('div','av '+spk);if(spk==='d')a.innerHTML=`<img src="${A('icon_doctor')}" alt="">`;else if(spk==='m')a.innerHTML=`<img src="${A('icon_mascot')}" alt="">`;else{const im=new Image();im.src=A('icon_nurse');im.alt='';im.onerror=()=>{a.textContent='看';};a.appendChild(im);}return a;}
+const SCENE_BG={bronch:'bg_play',gastro:'bg_er',hps:'bg_ward',asthma:'bg_er',dka:'bg_er',sepsis:'bg_picu_night',hv:'bg_er',co:'bg_er',nh3:'bg_picu_night',rta:'bg_ward',tbi:'bg_picu_night',bpd:'bg_picu_night'};
+const PIMG={bronch:{bad:'patient_bronch_bad',good:'patient_bronch',final:'patient_bronch'},gastro:{bad:'patient_gastro',good:'patient_gastro_good',final:'patient_gastro_good'},hps:{bad:'patient_hps',good:'patient_hps',final:'patient_hps_good'},asthma:{good:'patient_asthma',bad:'patient_asthma_bad',final:'patient_asthma'},dka:{bad:'patient_dka',vent:'patient_dka_intubated',good:'patient_dka_intubated',final:'patient_dka_good'},sepsis:{bad:'patient_sepsis_bad',good:'patient_sepsis',final:'patient_sepsis'},hv:{bad:'patient_hv',good:'patient_hv_good',final:'patient_hv_good'},co:{bad:'patient_co',good:'patient_co_good',final:'patient_co_good'},nh3:{bad:'patient_nh3',good:'patient_nh3_good',final:'patient_nh3_good'},rta:{bad:'patient_rta',good:'patient_rta_good',final:'patient_rta_good'},tbi:{bad:'patient_tbi',good:'patient_tbi',vent:'patient_tbi',final:'patient_tbi_good'},bpd:{bad:'patient_bpd',good:'patient_bpd',vent:'patient_bpd',final:'patient_bpd_good'}};
+function setDoc(e){const d=$('#docImg');if(d)d.src=A('doctor_'+e);}
+function setMasc(e){const m=$('#mascImg');if(m)m.src=A('mascot_'+e);}
+function setPatient(c,state,label,cls){const im=$('#ptImg'),k=(PIMG[c.id]||{})[state];if(k){im.hidden=false;im.onerror=()=>{im.hidden=true;};im.src=A(k);}const b=$('#cond');b.textContent=label||'';b.className='cond '+(cls||'');b.hidden=!label;}
+async function say(t,spk,html){chk(t);await sleep(RM?0:380);chk(t);
+  const m=el('div','msg '+spk);
+  if(spk==='d'||spk==='ns'||spk==='m')m.appendChild(avatar(spk));
+  const b=el('div','bub',(NAMES[spk]?`<span class="nm">${NAMES[spk]}</span>`:'')+html);m.appendChild(b);$('#log').appendChild(m);scrollLog();return m;}
+function sayEx(html,ok){const m=el('div','msg ex');m.appendChild(avatar('d'));m.appendChild(el('div','bub'+(ok?'':' wrong'),`<span class="nm">${NAMES.d}</span>`+html));$('#log').appendChild(m);scrollLog();}
+function nextBtn(t,label){return new Promise(res=>{chk(t);const r=el('div','nextrow');const b=el('button','btn primary',label||'次へ');b.type='button';r.appendChild(b);$('#log').appendChild(r);scrollLog();b.focus({preventScroll:true});b.onclick=()=>{r.remove();res();};});}
+function refreshVis(extra={}){const g=ST.gas;drawMap({trail:ST.trail,bands:ST.bands,hot:extra.hot||ST.hot,expect:extra.expect||ST.expect,ghost:extra.ghost});
+  $('#seesaw').innerHTML=seesawSVG(g.hco3,g.pco2,{hiH:(extra.focus||[]).includes('hco3'),hiP:(extra.focus||[]).includes('pco2')});
+  $('#ratioTxt').textContent='比 '+(g.hco3/(0.03*g.pco2)).toFixed(1)+' : 1';}
+function setGas(g,anim){ST.gas=fullGas(g);ST.trail.push(ST.gas);slipCount++;renderSlip(ST.gas,ST.trail,[],anim);
+  if(isMob()){$('#log').appendChild(el('div','',gasTiles(ST.gas,[],false)).firstChild);scrollLog();}markTab('slip');
+  const sp=ST.vit.spo2!=null?ST.vit.spo2:SPO2(ST.gas.po2);setMon({spo2:sp});refreshVis();}
+function setVitals(v){ST.vit=Object.assign({},ST.vit,v);setMon({hr:ST.vit.hr,rr:ST.vit.rr,bp:ST.vit.bp,t:ST.vit.t,spo2:ST.vit.spo2!=null?ST.vit.spo2:(ST.gas?SPO2(ST.gas.po2):0)});}
+
+function askStep(t,c,st){
+  return new Promise(res=>{chk(t);
+    setDoc('think');setMasc('happy');const q=el('div','q');q.innerHTML=`<div class="qh">${st.h||'QUESTION'}</div><div class="qt">${st.q}</div>`;
+    const post=[];
+    if(st.gamble){const v=el('div','inline-vis');v.innerHTML=gambleSVG(ST.gas,c.id==='dka'?'ケトン体':c.id==='sepsis'?'乳酸など':c.id==='co'?'乳酸':'');post.push(v);}
+    if(st.focus&&isMob())q.insertAdjacentHTML('beforeend',gasTiles(ST.gas,st.focus,true));
+    if(st.oxy){const v=el('div','inline-vis');v.innerHTML=oxyHTML(ST.gas,c.vent?ventCalc(c.vent,c.vent.init,c.wt).map:null);post.push(v);}
+    const chs=el('div','choices');const hint=el('div','hint');hint.hidden=true;let first=true;
+    st.ch.forEach(([txt,ok,fb])=>{const b=el('button','choice',txt);b.type='button';chs.appendChild(b);
+      b.onclick=()=>{if(ok){b.classList.add('ok');chs.querySelectorAll('button').forEach(x=>x.disabled=true);hint.hidden=true;post.forEach(v=>q.appendChild(v));
+          setDoc('happy');setMasc('excited');if(first)ST.score+=10;ST.qDone++;if(first)ST.qFirst++;updTop();
+          if(st.reveal){st.reveal.forEach(k=>{if(!ST.bands.includes(k))ST.bands.push(k);if(!PROG.bands.includes(k))PROG.bands.push(k);});save();}
+          ST.hot=st.reveal||[];ST.expect=st.expect||[];refreshVis({focus:st.focus});renderSlip(ST.gas,ST.trail,st.focus||[]);
+          sayEx((first?'<b class="c-ok">正解！</b> ':'<b class="c-ok">そう。</b> ')+st.ex,true);if(st.card)earn(st.card);
+          if(st.reveal){markTab('map');if(isMob()){$('#log').appendChild(mapInline());scrollLog();}}
+          nextBtn(t).then(()=>{ST.hot=[];ST.expect=[];renderSlip(ST.gas,ST.trail,[]);refreshVis();res();}).catch(()=>{});}
+        else{first=false;setDoc('alert');setMasc('sad');b.classList.add('ng');b.disabled=true;hint.innerHTML='ちがうよ。'+(fb||st.hint||'もう一度考えてみよう。');hint.hidden=false;}};});
+    q.appendChild(chs);q.appendChild(hint);$('#log').appendChild(q);scrollLog();
+    if(st.focus){renderSlip(ST.gas,ST.trail,st.focus);refreshVis({focus:st.focus});}
+  });
+}
+
+function runTreat(t,c){
+  const tr=c.treat;
+  return new Promise(res=>{chk(t);
+    setDoc('think');const q=el('div','q');q.innerHTML=`<div class="qh">治療</div><div class="qt">${tr.q}</div>`;
+    const chs=el('div','choices');const hint=el('div','hint');hint.hidden=true;let first=true;
+    tr.ch.forEach(([txt,ok,fb])=>{const b=el('button','choice',txt);b.type='button';chs.appendChild(b);
+      b.onclick=async()=>{if(ok){b.classList.add('ok');chs.querySelectorAll('button').forEach(x=>x.disabled=true);hint.hidden=true;ST.score+=first?30:10;updTop();setDoc('happy');setMasc('excited');
+          try{await say(t,'n','治療を開始した…');await sleep(RM?0:500);chk(t);setVitals(tr.vitals);setGas(tr.result,true);setPatient(c,'good','改善','ok');
+          await say(t,'ns',`${tr.result.label}のガスです。pH ${f2(ST.gas.pH||ST.gas.ph)}、PaCO₂ ${f0(ST.gas.pco2)}、HCO₃⁻ ${f1(ST.gas.hco3)}。`);
+          sayEx(tr.ex,true);res();}catch(e){}}
+        else{first=false;setDoc('alert');setMasc('sad');b.classList.add('ng');b.disabled=true;hint.innerHTML=fb||'もう一度考えてみよう。';hint.hidden=false;}};});
+    q.appendChild(chs);q.appendChild(hint);$('#log').appendChild(q);scrollLog();
+  });
+}
+
+const KN={rr:{l:'呼吸数 RR',u:'/min',min:10,max:60,step:1,fmt:f0},vt:{l:'1回換気量 Vt',u:'mL/kg',min:4,max:12,step:0.5,fmt:f1},peep:{l:'PEEP',u:'cmH₂O',min:4,max:16,step:1,fmt:f0},fio2:{l:'FiO₂',u:'',min:0.25,max:1,step:0.05,fmt:v=>v.toFixed(2)}};
+function runVent(t,c,startResult){
+  const V=c.vent;const s=Object.assign({},V.init);let checks=0;
+  return new Promise(res=>{chk(t);
+    const box=el('div','vent');const id='v'+c.id;
+    box.innerHTML=`<div class="vh"><span>VENTILATOR・従量式（VC-AC）　I:E 1:2</span><span id="${id}-n"></span></div><div class="knobs" id="${id}-k"></div><div class="derived" id="${id}-d"></div><div class="goals" id="${id}-g"></div><div class="act"><small id="${id}-m">点線の円が設定後の予測位置。決めたら再検しよう。</small><button class="btn primary" type="button" id="${id}-b">この設定で30分後に再検</button></div>`;
+    $('#log').appendChild(box);scrollLog();
+    if(isMob())box.querySelector('#'+id+'-k').insertAdjacentHTML('afterend',`<div class="inline-vis map-inline" id="${id}-map"></div>`);
+    const kWrap=box.querySelector('#'+id+'-k');
+    ['rr','vt','peep','fio2'].forEach(k=>{const d=KN[k],lock=!V.controls.includes(k);const w=el('div','knob'+(lock?' locked':''));
+      w.innerHTML=`<label for="${id}-${k}">${d.l}<span class="val" id="${id}-${k}v">${d.fmt(s[k])}<small>${d.u}</small></span></label><input type="range" id="${id}-${k}" min="${d.min}" max="${d.max}" step="${d.step}" value="${s[k]}" ${lock?'disabled':''}>`;
+      kWrap.appendChild(w);const inp=w.querySelector('input');inp.oninput=()=>{s[k]=parseFloat(inp.value);w.querySelector('.val').innerHTML=d.fmt(s[k])+`<small>${d.u}</small>`;upd();};});
+    function upd(){const r=ventCalc(V,s,c.wt);
+      const dv=(k,v,cls)=>`<div class="dv ${cls||''}"><span class="k">${k}</span><span class="v">${v}</span></div>`;
+      box.querySelector('#'+id+'-d').innerHTML=
+        dv('分時換気量',r.mv.toFixed(2)+' L/min')+dv('肺胞換気量',f0(r.va)+' mL/kg/分')+dv('呼気時間 / 3τ',r.te.toFixed(2)+' / '+(3*V.tau).toFixed(2)+' s',r.te<3*V.tau?'warn':'')+
+        dv('プラトー圧',f0(r.pplat)+' cmH₂O',r.pplat>28?'bad':'')+dv('駆動圧 ΔP',f0(r.dP)+' cmH₂O',r.dP>15?'warn':'')+dv('平均気道内圧',f0(r.map)+' cmH₂O')+
+        (r.auto>0.5?dv('内因性PEEP',f1(r.auto)+' cmH₂O','warn'):'')+(r.bp?dv('予測血圧',r.bp[0]+'/'+r.bp[1],r.bp[0]<70?'bad':''):'');
+      drawMap({trail:ST.trail,bands:ST.bands,ghost:r});setMon({rr:s.rr,vent:true});const mm=box.querySelector('#'+id+'-map');if(mm)mm.innerHTML=$('#map').innerHTML;return r;}
+    function showGoals(r){box.querySelector('#'+id+'-g').innerHTML=V.goals(r).map(([l,p])=>`<div class="goal ${p?'pass':'fail'}"><span class="mk">${p?'✓':'✕'}</span>${l}</div>`).join('');}
+    box.querySelector('#'+id+'-g').innerHTML=V.goals(ventCalc(V,s,c.wt)).map(([l])=>`<div class="goal"><span class="mk">・</span>${l}</div>`).join('');
+    upd();
+    const btn=box.querySelector('#'+id+'-b');
+    btn.onclick=async()=>{btn.disabled=true;box.querySelectorAll('input').forEach(i=>i.disabled=true);
+      try{checks++;const r=ventCalc(V,s,c.wt);await say(t,'n',`RR ${s.rr}、Vt ${f1(s.vt)} mL/kg、PEEP ${s.peep}、FiO₂ ${s.fio2.toFixed(2)}。30分後……`);
+        chk(t);applyVentResult(c,r,`再検${checks}`);showGoals(r);
+        const allOk=V.goals(r).every(x=>x[1]);
+        box.querySelector('#'+id+'-n').textContent='再検 '+checks+' 回';
+        if(allOk){setDoc('happy');setMasc('excited');setPatient(c,'good','安定','ok');ST.score+=Math.max(10,40-10*(checks-1));updTop();sayEx('<b class="c-ok">目標達成！</b> pH '+f2(r.ph)+'、PaCO₂ '+f0(r.pco2)+'、SpO₂ '+f0(r.spo2)+'%。<br>'+c.ventDone,true);res();}
+        else{setDoc(r.ph<7.05||r.spo2<85?'alert':'think');setMasc('sad');const fails=V.goals(r).filter(x=>!x[1]).map(x=>x[0]);let tip='まだ届いていない：'+fails.join('、')+'。';
+          if(r.te<3*V.tau)tip+='<br>呼吸数が多すぎて息を吐ききれていない。呼吸数を少し下げて Vt を増やす方法もあるよ。';
+          if(V.tip){const x=V.tip(r,s);if(x)tip+='<br>'+x;}
+          else if(r.te>=3*V.tau&&r.pco2>(c.id==='dka'?22:50)&&s.vt<=8)tip+='<br>肺胞換気量が足りない。死腔を差し引いた「有効な換気」を増やそう。';
+          if(r.pplat>28)tip+='<br>プラトー圧が高い。Vt か PEEP を下げよう。';
+          if(c.id==='sepsis'&&r.spo2<88)tip+='<br>酸素化が足りない。PEEP で肺胞を開こう（上げすぎると血圧が下がる）。';
+          if(s.fio2>0.6&&c.id==='sepsis'&&r.spo2>=88)tip+='<br>酸素化に余裕が出たら FiO₂ を下げよう。';
+          sayEx(tip,false);btn.disabled=false;box.querySelectorAll('input').forEach((i)=>{const k=i.id.split('-').pop();i.disabled=!V.controls.includes(k);});scrollLog();}}catch(e){}};
+  });
+}
+function applyVentResult(c,r,label){
+  const g=Object.assign({},ST.gas,{label,pco2:r.pco2,hco3:r.hco3,po2:r.po2,fio2:r.s.fio2});
+  if(c.id==='dka'){g.k=+(5.6+0.6*Math.max(0,(7.17-r.ph)/0.1)).toFixed(1);}
+  setGas(g,true);
+  const v={rr:r.s.rr,spo2:r.spo2};if((c.vent.alarmPH&&r.ph<c.vent.alarmPH)||r.spo2<85||(c.id==='bpd'&&r.ph>7.5)){setDoc('alert');setMasc('alert');}if(r.bp)v.bp=r.bp[0]+'/'+r.bp[1];
+  if(c.id==='dka')v.hr=r.ph<7.0?158:r.ph<7.1?142:124;
+  if(c.id==='sepsis')v.hr=r.ph<7.15?172:162;
+  setVitals(v);setMon({vent:true,alarm:(c.vent.alarmPH&&r.ph<c.vent.alarmPH)||r.spo2<85||(r.bp&&r.bp[0]<70)});
+}
+
+async function runCase(c){
+  const t=++token;
+  ST={c,trail:[],bands:[],hot:[],expect:[],score:0,qDone:0,qFirst:0,vit:{},gas:null};
+  show('caseView',`症例 ${c.no}　${c.title}`,`${c.pt}・${c.age}・${c.wt} kg`);
+  $('#caseTitle').innerHTML=`症例 ${c.no}　${c.title}<small>${c.pt}・${c.age}・${c.wt} kg</small>`;
+  $('#monWho').innerHTML=`<b>${c.pt}</b><span>${c.age}</span><span>${c.wt} kg</span>`;
+  $('#log').innerHTML='';renderSlip(null);setDoc('normal');setMasc('happy');$('#scene').style.backgroundImage=`url(${A(SCENE_BG[c.id])}),url(${A('bg_play')})`;setPatient(c,c.id==='asthma'?'good':'bad',c.id==='asthma'?'発作中':'診察中','bad');
+  if(c.vent)calibrate(c.vent,c.wt);
+  setMon({hr:0,spo2:0,rr:0,bp:'--',t:null,vent:false,alarm:false});ST.gas=fullGas({hco3:24,pco2:40,po2:90,fio2:.21,na:140,k:4,cl:104,glu:90,lac:1,alb:4,label:'',src:''});
+  drawMap({trail:[],bands:[]});$('#seesaw').innerHTML=seesawSVG(24,40);$('#ratioTxt').textContent='';
+  updTop();
+  try{
+    setVitals(c.vitals);if(RM)staticWave();
+    const hc=chOf(c);if(!PROG[hc.pro]){await playScene(t,STORY[hc.pro]);PROG[hc.pro]=1;save();}
+    BGM.want(CASE_BGM[c.id]);await playScene(t,STORY[c.id].open);
+    for(const [s,h] of c.intro)await say(t,s,h);
+    await say(t,'n','分析器がガス伝票を印字している…');await sleep(RM?0:400);chk(t);
+    setGas(c.gas,true);
+    for(const st of c.steps){
+      if(st.pre){for(const [s,h] of st.pre.say)await say(t,s,h);setPatient(c,'bad','ぐったり','bad');setDoc('alert');setVitals(st.pre.vitals);setGas(st.pre.gas,true);await sleep(RM?0:300);}
+      await teach(t,lessonKeys(st));
+      await askStep(t,c,st);
+    }
+    if(c.ventPre){for(const [s,h] of c.ventPre.say)await say(t,s,h);
+      calibrate(c.vent,c.wt);$('#scene').style.backgroundImage=`url(${A('bg_play')})`;setPatient(c,'vent','挿管中','bad');const r=ventCalc(c.vent,c.vent.init,c.wt);applyVentResult(c,r,'挿管15分後');
+      for(const [s,h] of c.ventPre.after)await say(t,s,h);}
+    if(c.ventIntro)for(const [s,h] of c.ventIntro)await say(t,s,h);
+    if(c.vent){await teach(t,(c.cardsEnd||[]).filter(k=>VENT_LESSONS.includes(k)));await runVent(t,c);}
+    if(c.treat)await runTreat(t,c);
+    (c.cardsEnd||[]).forEach(earn);
+    setMon({alarm:false});setPatient(c,'final','回復','ok');
+    await sleep(RM?0:900);await playScene(t,STORY[c.id].close);
+    await debrief(t,c);
+  }catch(e){if(e!==ABORT)console.error(e);}
+}
+async function debrief(t,c){
+  chk(t);await sleep(RM?0:500);chk(t);
+  const max=c.steps.length*10+(c.vent?40:30),pct=ST.score/max,stars=pct>=0.9?3:pct>=0.7?2:1;
+  const prev=PROG.cases[c.id];if(!prev||prev.score<ST.score){PROG.cases[c.id]={score:ST.score,stars,max};save();}
+  setDoc('happy');setMasc('excited');const d=el('div','debrief');
+  const learned=c.steps.filter(s=>s.card).map(s=>s.card).concat(c.cardsEnd||[]);
+  const nx=CASES.find(x=>x.no===c.no+1);
+  d.innerHTML=`<img class="confetti" src="${A('fx_confetti')}" alt=""><img class="dochappy" src="${A('doctor_happy')}" alt=""><div style="font-size:12px;letter-spacing:.12em;color:var(--muted);font-weight:700">CASE ${c.no} クリア！</div><div class="big">${c.tag[0]}</div>
+  <div class="stars">${'★'.repeat(stars)}<span class="off">${'★'.repeat(3-stars)}</span></div>
+  <div class="num" style="color:var(--muted)">スコア ${ST.score} / ${max}　一発正解 ${ST.qFirst} / ${c.steps.length}</div>
+  <div>この症例で覚えたこと</div><ul>${[...new Set(learned)].map(k=>`<li><b>${CARDS[k].t}</b>　<span class="num c-hco3" style="font-size:12.5px">${CARDS[k].fx}</span></li>`).join('')}</ul>
+  <div class="row">${nx?`<button class="btn primary" type="button" data-next="${nx.id}">次の症例：${nx.title}</button>`:''}${chDone(chOf(c))?`<button class="btn primary" type="button" data-epi="${chOf(c).id}">${chOf(c).kicker}のエピローグ</button>`:''}<button class="btn" type="button" data-retry="1">もう一度</button><button class="btn ghost" type="button" data-home="1">病棟へ戻る</button></div>`;
+  $('#log').appendChild(d);scrollLog();
+  d.querySelector('[data-retry]').onclick=()=>runCase(c);const ep=d.querySelector('[data-epi]');if(ep)ep.onclick=()=>showEpilogue(+ep.dataset.epi);
+  d.querySelector('[data-home]').onclick=goHome;
+  if(nx)d.querySelector('[data-next]').onclick=()=>runCase(nx);
+}
+function updTop(){
+  const tot=Object.values(PROG.cases).reduce((a,x)=>a+x.stars,0);
+  $('#topScore').innerHTML=ST&&!$('#caseView').hidden?`<span>この症例 <strong>${ST.score}</strong> pt</span><span>★ <strong>${tot}</strong> / ${MAXS()}</span>`:`<span>★ <strong>${tot}</strong> / ${MAXS()}</span><span>ノート <strong>${PROG.cards.length}</strong> / ${Object.keys(CARDS).length}</span>`;
+}
+
+/* ========== 病棟ボード ========== */
+async function showEpilogue(id){const h=CHAPTERS.find(x=>x.id===(id||1));const t=++token;try{await playScene(t,STORY[h.epi]);PROG[h.epi]=1;save();}catch(e){}goHome();}
+async function showPrologue(id){const h=CHAPTERS.find(x=>x.id===(id||1));const t=++token;try{await playScene(t,STORY[h.pro]);PROG[h.pro]=1;save();}catch(e){}vnClose();if(cur!=='caseView')BGM.want(SCREEN_BGM[cur]);}
+function goHome(){token++;vnClose();setMon({alarm:false});renderHome();show('home');}
+/* ===== 画面の切り替え（タイトル → 症例をえらぶ／ノート／この教材について → 症例） ===== */
+const SCREENS=['title','home','notesView','aboutView','caseView'];
+document.querySelectorAll('.snd-btn').forEach(b=>{b.innerHTML=SND_SVG;b.onclick=e=>{e.stopPropagation();BGM.setOn(!BGM.on());};});BGM.setOn(BGM.on());
+const AB={home:['症例をえらぶ','2つの夜・12人の患者'],notesView:['マスターノート','症例で覚えた式とコツ'],aboutView:['この教材について','触って覚える！血液ガスマスター']};
+let cur='title';
+function show(id,t,sub){
+  if(id!=='caseView'&&cur==='caseView')token++;
+  SCREENS.forEach(k=>{$('#'+k).hidden=k!==id;});cur=id;closeSheet();
+  const ab=$('#appbar');ab.hidden=id==='title';
+  if(id!=='title'){const a=AB[id]||[t,sub];$('#abT').textContent=a[0]||'';$('#abS').textContent=a[1]||'';
+    requestAnimationFrame(()=>document.documentElement.style.setProperty('--abh',ab.offsetHeight+'px'));}
+  if(SCREEN_BGM[id])BGM.want(SCREEN_BGM[id]);
+  if(id==='title')renderTitle();if(id==='home'||id==='notesView')renderHome();if(id==='aboutView')heroUpd();
+  updTop();window.scrollTo(0,0);
+}
+function nextAction(){for(const h of CHAPTERS){const c=chCases(h).find(x=>!PROG.cases[x.id]);if(c)return {type:'case',c,h};if(!PROG[h.epi])return {type:'epi',h};}return null;}
+function renderTitle(){
+  const tot=Object.values(PROG.cases).reduce((a,x)=>a+x.stars,0),cleared=CASES.filter(c=>PROG.cases[c.id]).length,na=nextAction();
+  const pct=Math.round(tot/MAXS()*100);$('#tProg').style.width=pct+'%';$('#tPct').textContent=pct+'%';
+  $('#tNoteS').textContent=`覚えた式とコツ　${PROG.cards.length} / ${Object.keys(CARDS).length}`;
+  let say,gt,gs,doc='normal';
+  if(!cleared&&!PROG.prologue){say='はじめまして。小児科の いぶき先生です。\n今日はあなたの はじめての当直。\nいっしょに 血液ガスを読んでいこう。';gt='はじめる';gs='プロローグと 症例1 から';}
+  else if(na&&na.type==='case'){const c=na.c;
+    if(!PROG[na.h.pro]&&na.h.id===2){say='3か月ぶりだね。今夜は あなたが\n当直の一番手よ。';gt='第2章へ';gs=`ひとりで立つ夜　症例${c.no} から`;}
+    else{say=`おかえり。次は ${STORY[c.id].open.chap.time}、\n${c.pt}の 患者さんだよ。`;gt='つづきから';gs=`症例${c.no}　${c.title}`;}}
+  else if(na&&na.type==='epi'){say=na.h.id===1?'6人とも 朝を迎えられたね。\n最後に すこし話をしようか。':'ひとりで 夜を越えたね。\n朝の申し送りに 行こうか。';gt='エピローグ';gs=`${na.h.kicker}　${na.h.title}`;doc='happy';}
+  else{say=tot>=MAXS()?'全症例 ★3。もう立派な\n「血液ガスマスター」だね。':'お疲れさま。★を集めに\nもう一度 回ってみる？';gt='症例をえらぶ';gs=`★ ${tot} / ${MAXS()}`;doc='happy';}
+  $('#tSay').textContent=say;$('#tGoT').textContent=gt;$('#tGoS').textContent=gs;$('#tDoc').src=A('doctor_'+doc);
+}
+function titleGo(){const na=nextAction();if(!na)show('home');else if(na.type==='case')runCase(na.c);else showEpilogue(na.h.id);}
+function markTab(k){if(!isMob())return;const b=document.querySelector(`#tabbar [data-tab="${k}"] .dot`);if(b&&!($('#side').classList.contains('open')&&$('#side').dataset.tab===k))b.hidden=false;}
+const SHEET_T={slip:'ガス伝票',seesaw:'天秤',map:'マップ'};
+function openSheet(k){const sd=$('#side');sd.dataset.tab=k;$('#sheetT').textContent=(ST?ST.c.pt+'の':'')+SHEET_T[k];sd.classList.add('open');$('#sheetBd').classList.add('on');sd.scrollTop=0;
+  document.querySelectorAll('#tabbar button').forEach(b=>{b.classList.toggle('on',b.dataset.tab===k);if(b.dataset.tab===k){const d=b.querySelector('.dot');if(d)d.hidden=true;}});}
+function closeSheet(){const sd=$('#side');if(!sd)return;sd.classList.remove('open');$('#sheetBd').classList.remove('on');document.querySelectorAll('#tabbar button').forEach(b=>b.classList.remove('on'));}
+function renderHome(){
+  const col={co2:'#1BA7C9',acid:'#FF5E8A',base:'#5B7CFA'};
+  const cardHTML=c=>{const p=PROG.cases[c.id];const st=p?p.stars:0;
+    const pi=PIMG[c.id];return `<button class="case-card" type="button" data-case="${c.id}"><div class="thumb"><img src="${A(pi.bad||pi.good)}" alt="" onerror="this.replaceWith(Object.assign(document.createElement('img'),{src:'${A('mascot_happy')}',style:'height:70%'}))"></div><div class="body"><div class="no"><span>CASE ${String(c.no).padStart(2,'0')}</span><span class="lv">${c.lv}</span></div><div class="when">${STORY[c.id].open.chap.time}　${STORY[c.id].open.chap.place}</div><div class="pt">${c.pt}・${c.age}</div><div class="ttl">${c.title}</div><div class="tag"><span class="chip" style="background:${col[c.tag[1]]}">${c.tag[0]}</span><span class="stars">${'★'.repeat(st)}<span class="off">${'★'.repeat(3-st)}</span></span></div></div></button>`;};
+  $('#chapters').innerHTML=CHAPTERS.map(h=>{const cs=chCases(h),done=chDone(h),n=cs.filter(c=>PROG.cases[c.id]).length;
+    return `<section class="chapter"><div class="story-card"><div class="sc-cg" style="background-image:url(${A(h.cg)}),url(${A('cg_prologue')})"></div><div class="sc-b"><div class="sc-k"><img src="${A('icon_story')}" alt="" style="width:24px;height:24px;vertical-align:-7px;margin-right:6px">${h.kicker}　<span style="color:var(--muted);letter-spacing:0">${n} / ${cs.length} クリア</span></div><b>${h.title}</b><p>${h.desc}</p><div class="story-btn"><button class="btn" type="button" data-pro="${h.id}">プロローグを見る</button>${done?`<button class="btn primary" type="button" data-epil="${h.id}">エピローグを見る</button>`:''}</div></div></div>
+    <div class="section-h" style="margin-top:4px"><h3>担当患者</h3><span>${h.sub}</span></div><div class="cases">${cs.map(cardHTML).join('')}</div></section>`;}).join('');
+  document.querySelectorAll('[data-case]').forEach(b=>b.onclick=()=>runCase(CASES.find(c=>c.id===b.dataset.case)));
+  document.querySelectorAll('[data-pro]').forEach(b=>b.onclick=()=>showPrologue(+b.dataset.pro));
+  document.querySelectorAll('[data-epil]').forEach(b=>b.onclick=()=>showEpilogue(+b.dataset.epil));
+  $('#notes').innerHTML=Object.entries(CARDS).map(([k,v])=>{const on=PROG.cards.includes(k);return `<div class="note ${on?'on':'locked'}"><h4>${on?v.t:'？？？'}</h4><div class="fx">${on?v.fx:'症例をクリアすると解放'}</div>${on?`<p>${v.p}</p>`:''}</div>`;}).join('');
+  $('#noteCount').textContent=PROG.cards.length+' / '+Object.keys(CARDS).length+' 解放';
+  updTop();
+}
+function heroUpd(){const h=+$('#heroH').value,p=+$('#heroP').value;$('#heroHv').textContent=h;$('#heroPv').textContent=p;$('#heroSeesaw').innerHTML=seesawSVG(h,p);const ph=PH(h,p);
+  $('#heroPh').innerHTML=`pH <b style="color:${ph<7.35?'var(--acid)':ph>7.45?'var(--base)':'var(--ok)'}">${f2(ph)}</b>`;}
+$('#heroH').oninput=heroUpd;$('#heroP').oninput=heroUpd;
+$('#backBtn').onclick=goHome;
+$('#abBack').onclick=()=>{if(cur==='caseView')goHome();else show('title');};
+$('#tGo').onclick=titleGo;
+document.querySelectorAll('[data-nav]').forEach(b=>b.onclick=()=>show(b.dataset.nav));
+document.querySelectorAll('#tabbar button').forEach(b=>b.onclick=()=>{const sd=$('#side');if(sd.classList.contains('open')&&sd.dataset.tab===b.dataset.tab)closeSheet();else openSheet(b.dataset.tab);});
+$('#sheetX').onclick=closeSheet;$('#sheetBd').onclick=closeSheet;
+addEventListener('keydown',e=>{if(e.key==='Escape')closeSheet();});
+matchMedia('(max-width:860px)').addEventListener('change',()=>{if(!isMob())closeSheet();});
+$('#allBands').onclick=()=>{showAll=!showAll;$('#allBands').textContent=showAll?'解放済みのみ':'全ゾーン表示';if(ST)refreshVis();};
+heroUpd();renderHome();show('title');
+requestAnimationFrame(waveLoop);
+</script>
